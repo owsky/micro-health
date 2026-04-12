@@ -1,0 +1,79 @@
+plugin_configs:
+  - id: 1
+    plugins:
+      openid-connect:
+        client_id: "apisix-client"
+        client_secret: "${{KEYCLOAK_SECRET}}"
+        discovery: "http://keycloak:8080/realms/micro-health-realm/.well-known/openid-configuration"
+        bearer_only: true
+        realm: "micro-health-realm"
+        redirect_uri: "http://localhost:80/callback"
+        # --- Identity Injection Headers ---
+        set_access_token_header: true # Sends X-Access-Token
+        set_userinfo_header: true # Sends X-Userinfo (base64-encoded JSON)
+        # ---------------------------------
+        session:
+          secret: "${{SESSION_SECRET}}"
+
+routes:
+  - id: 1
+    uri: "/api/user-service/*"
+    name: "user-service-route"
+    plugin_config_id: 1
+    upstream_id: "user-service-upstream"
+    plugins:
+      proxy-rewrite:
+        regex_uri: ["^/api/user-service/(.*)", "/$1"]
+
+  - id: 2
+    uri: "/api/workouts/*"
+    name: "workout-service-route"
+    plugin_config_id: 1
+    upstream_id: "workout-service-upstream"
+
+  - id: 3
+    uri: "/api/metrics/*"
+    name: "metrics-service-route"
+    plugin_config_id: 1
+    upstream_id: "metrics-service-upstream"
+
+  - id: 4
+    uri: "/api/feed/*"
+    name: "feed-service-route"
+    plugin_config_id: 1
+    upstream_id: "feed-service-upstream"
+
+  - id: 5
+    uri: "/api/notifications/*"
+    name: "notification-service-route"
+    plugin_config_id: 1
+    upstream_id: "notification-service-upstream"
+
+upstreams:
+  - id: "user-service-upstream"
+    type: roundrobin
+    nodes:
+      "user-service:5000": 1
+
+  - id: "workout-service-upstream"
+    type: roundrobin
+    nodes:
+      "workout-service:PORT": 1
+
+  - id: "metrics-service-upstream"
+    type: roundrobin
+    nodes:
+      "metrics-service:PORT": 1
+
+  - id: "feed-service-upstream"
+    type: roundrobin
+    nodes:
+      "feed-service:PORT": 1
+
+  - id: "notification-service-upstream"
+    type: roundrobin
+    nodes:
+      "notification-service:PORT": 1
+
+# Essential terminator for standalone files
+#END

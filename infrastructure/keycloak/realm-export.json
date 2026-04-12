@@ -1,0 +1,57 @@
+{
+  "realm": "${REALM_NAME}",
+  "enabled": true,
+  "attributes": {
+    "frontendUrl": "http://keycloak:8080/"
+  },
+  "clients": [
+    {
+      "clientId": "apisix-client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${KEYCLOAK_SECRET}",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["*"],
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "apisix-client",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "firstName": "test",
+      "lastName": "test",
+      "username": "test-user",
+      "createdTimestamp": "1775999142",
+      "enabled": true,
+      "email": "test-user@example.com",
+      "emailVerified": true,
+      "requiredActions": [],
+      "realmRoles": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-password",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

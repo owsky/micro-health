@@ -1,0 +1,19 @@
+apisix:
+  node_listen: 9080
+  admin_key:
+    - name: "admin"
+      key: edd1c9f034335f136f87ad84b625c8f1 # Default Admin Key
+      role: admin
+
+deployment:
+  role: data_plane
+  role_data_plane:
+    config_provider: yaml
+
+conf_listen:
+  interval: 10s
+
+nginx_config:
+  envs:
+    - KEYCLOAK_SECRET
+    - SESSION_SECRET
