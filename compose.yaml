@@ -61,9 +61,28 @@ services:
       - "80:9080"
       - "443:9443"
 
+  # --- RABBITMQ ---
+  rabbitmq:
+    image: rabbitmq:4-management
+    env_file:
+      - ./infrastructure/rabbitmq/.env
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - backend-net
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 networks:
   apisix-net:
   backend-net:
 
 volumes:
   keycloak_data:
+  rabbitmq_data:
