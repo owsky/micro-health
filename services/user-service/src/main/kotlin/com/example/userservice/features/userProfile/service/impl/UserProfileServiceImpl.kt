@@ -11,6 +11,7 @@ import com.example.userservice.shared.exceptions.ConflictException
 import com.example.userservice.shared.exceptions.ResourceNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class UserProfileServiceImpl(
@@ -42,6 +43,7 @@ class UserProfileServiceImpl(
         return mapper.toResponse(saved)
     }
 
+    @Transactional
     override fun deleteUserProfile(userName: String) = repository.deleteByUserName(userName)
 
 }
