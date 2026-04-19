@@ -1,3 +1,3 @@
 package com.example.userservice.shared.exceptions
 
-class ResourceNotFoundException : RuntimeException()
+class ResourceNotFoundException(message: String) : RuntimeException(message)
