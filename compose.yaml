@@ -1,9 +1,12 @@
+include:
+  - path: ./services/user-service/user-compose.yaml
+
 services:
-  # --- KEYCLOAK DATABASE ---
+  # --- KEYCLOAK ---
   keycloak-db:
-    image: postgres:16
+    image: postgres:18.3
     volumes:
-      - keycloak_data:/var/lib/postgresql/data
+      - keycloak_data:/var/lib/postgresql
     env_file:
       - ./infrastructure/keycloak/.env
     healthcheck:
@@ -14,7 +17,6 @@ services:
     networks:
       - apisix-net
 
-  # --- KEYCLOAK ---
   keycloak:
     image: quay.io/keycloak/keycloak:26.6.0
     command: start-dev --import-realm
@@ -33,23 +35,8 @@ services:
       test: ['CMD-SHELL', "{ printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000"]
       interval: 5s
       timeout: 5s
-      retries: 30
-
-  # -- APIs ---
-  user-service:
-    build: 
-      context: ./services/user-service
-      dockerfile: Dockerfile
-    networks:
-      - backend-net
-    depends_on:
-      keycloak:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://0.0.0.0:5000/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 30s
 
   # --- APACHE APISIX GATEWAY ---
   apisix:
