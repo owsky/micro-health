@@ -3,10 +3,11 @@ package com.example.userservice
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
 
-@SpringBootApplication
+@SpringBootApplication(exclude = [UserDetailsServiceAutoConfiguration::class])
 class UserServiceApplication {
     @Bean
     fun commandLineRunner(environment: Environment) = CommandLineRunner {
