@@ -8,7 +8,7 @@ plugin_configs:
       openid-connect:
         client_id: "apisix-client"
         client_secret: "${{KEYCLOAK_SECRET}}"
-        discovery: "http://keycloak:8080/realms/micro-health-realm/.well-known/openid-configuration"
+        discovery: "http://host.docker.internal:8080/realms/micro-health-realm/.well-known/openid-configuration"
         bearer_only: true
         realm: "micro-health-realm"
         redirect_uri: "http://localhost:80/callback"
@@ -57,27 +57,27 @@ upstreams:
   - id: "user-service-upstream"
     type: roundrobin
     nodes:
-      "user-service:5000": 1
+      "${{USER_SERVICE_NODE}}": 1
 
   - id: "workout-service-upstream"
     type: roundrobin
     nodes:
-      "workout-service:PORT": 1
+      "${{WORKOUT_SERVICE_NODE}}": 1
 
   - id: "metrics-service-upstream"
     type: roundrobin
     nodes:
-      "metrics-service:PORT": 1
+      "${{METRICS_SERVICE_NODE}}": 1
 
   - id: "feed-service-upstream"
     type: roundrobin
     nodes:
-      "feed-service:PORT": 1
+      "${{FEED_SERVICE_NODE}}": 1
 
   - id: "notification-service-upstream"
     type: roundrobin
     nodes:
-      "notification-service:PORT": 1
+      "${{NOTIFICATION_SERVICE_NODE}}": 1
 
 # Essential terminator for standalone files
 #END
