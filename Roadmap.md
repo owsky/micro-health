@@ -4,9 +4,9 @@ System built as a **polyglot microservice platform** using containers, contract-
 
 Core infrastructure components:
 
-* API gateway: Kong
+* API gateway: Apache APISIX
 * Identity provider: Keycloak
-* Event streaming: Apache Kafka
+* Message broker: RabbitMQ
 * Monitoring: Prometheus
 * Dashboards: Grafana
 * Distributed tracing: OpenTelemetry
@@ -23,7 +23,7 @@ API contracts are defined using OpenAPI Specification and clients generated via 
 ```
 React Microfrontends
        |
-       Kong
+     APISIX
        |
 ---------------------------------------------------------
 |        |         |        |         |                 |
@@ -32,7 +32,7 @@ Svc     Svc       Svc      Svc      Svc               Svc
  |        |         |        |
 Postgres Postgres Timescale MongoDB
            |
-          Kafka
+        RabbitMQ
            |
    Event-driven processing
 ```
@@ -40,7 +40,7 @@ Postgres Postgres Timescale MongoDB
 Key architectural principles:
 
 * **each service owns its database**
-* **services communicate asynchronously via events**
+* **services communicate asynchronously via RabbitMQ events**
 * **frontend uses generated API clients**
 * **observability integrated everywhere**
 
@@ -70,9 +70,9 @@ contracts/
   events/
 
 infrastructure/
-  kong/
+  apisix/
   keycloak/
-  kafka/
+  rabbitmq/
   observability/
 
 docker-compose.yml
@@ -96,9 +96,9 @@ Create repository structure.
 
 Implement root **docker-compose** including:
 
-* Kong
+* APISIX
 * Keycloak
-* Kafka
+* RabbitMQ
 * PostgreSQL instances
 * MongoDB
 * TimescaleDB
@@ -128,7 +128,7 @@ Features:
 
 * authentication realm
 * frontend clients
-* service clients
+* service account clients
 * roles
 * JWT tokens
 
@@ -139,29 +139,30 @@ USER
 ADMIN
 ```
 
-### Kong configuration
+### APISIX configuration
 
 Features:
 
-* routing
-* JWT validation
+* declarative route configuration via `apisix.yaml`
+* OpenID Connect plugin with Keycloak (bearer token validation)
+* identity header injection (`X-Userinfo`, `X-Access-Token`) to upstream services
 * rate limiting
-* logging
-* upstream service registration
+* request ID generation for distributed tracing
+* upstream round-robin load balancing
 
 Deliverable:
 
 ```
-client → kong → service
+client → apisix → service
 ```
 
-secured via JWT.
+secured via Keycloak-issued JWT, validated by APISIX's OpenID Connect plugin.
 
 ---
 
 # Phase 3 — User Service
 
-Technology: Spring Boot
+Technology: Spring Boot (Kotlin)
 Database: PostgreSQL
 
 ### Responsibilities
@@ -170,40 +171,38 @@ User identity and fitness profile management.
 
 ### Features
 
-Account management:
+Profile management:
 
-* create user profile
+* create user profile (triggered on first authenticated request)
+* retrieve own profile
 * update profile
-* retrieve profile
-* deactivate account
+* delete account
 
 Fitness profile:
 
 * height
 * weight
-* age
+* date of birth
 * fitness goals
 * training experience level
 
 User preferences:
 
+* units (metric / imperial)
 * notification preferences
-* visibility settings
-* units (metric/imperial)
 
 Privacy:
 
 * public vs private profile
-* social visibility settings
 
 ### Endpoints
 
 ```
-GET /users/me
-PUT /users/me
-GET /users/{id}
-PUT /users/preferences
+GET    /users/me
+PUT    /users/me
 DELETE /users/me
+GET    /users/{id}
+PUT    /users/me/preferences
 ```
 
 ### Events Produced
@@ -223,59 +222,60 @@ Database: PostgreSQL
 
 ### Responsibilities
 
-Workout planning and workout execution tracking.
+Exercise catalog management and workout session tracking.
 
 ### Features
 
 Exercise catalog:
 
-* create exercises
-* categorize by muscle group
-* difficulty level
-* equipment requirements
+* create and list exercises
+* categorize by muscle group and difficulty level
+* search and filter exercises
 
-Workout plan builder:
+Workout templates:
 
-* create workout templates
-* add exercises
-* define sets/reps
-* define rest times
+* create workout plans from exercises
+* define sets, reps, and rest times per exercise
+* list and manage own templates
 
-Workout execution:
+Workout sessions:
 
-* start workout session
-* record sets
-* record repetitions
-* record weights
-
-Workout completion:
-
-* finalize workout
-* calculate duration
-* calculate volume
+* start a session from a template or ad-hoc
+* log sets with actual reps and weight
+* complete session (calculates duration and total volume)
 
 History:
 
-* list completed workouts
-* retrieve workout details
-* workout statistics
+* list past sessions with summary stats
+* retrieve full session details
+
+User data lifecycle:
+
+* purge all exercises, templates, and sessions for a user on account deletion
 
 ### Endpoints
 
 ```
-GET /exercises
-POST /exercises
-POST /workouts
-GET /workouts
-POST /workouts/{id}/start
-POST /workouts/{id}/complete
-GET /workouts/history
+GET    /exercises
+POST   /exercises
+GET    /workouts
+POST   /workouts
+GET    /workouts/{id}
+POST   /workouts/{id}/sessions/start
+POST   /workouts/{id}/sessions/{sessionId}/sets
+POST   /workouts/{id}/sessions/{sessionId}/complete
+GET    /sessions/history
+```
+
+### Events Consumed
+
+```
+UserDeleted
 ```
 
 ### Events Produced
 
 ```
-WorkoutStarted
 WorkoutCompleted
 ```
 
@@ -288,7 +288,7 @@ Database: TimescaleDB
 
 ### Responsibilities
 
-Store high-frequency physiological metrics.
+Store and query high-frequency physiological metrics.
 
 ### Features
 
@@ -297,30 +297,32 @@ Metric ingestion:
 * heart rate
 * steps
 * calories burned
-* sleep metrics
+* sleep duration
 
-High throughput ingestion API.
+Time-range queries:
 
-Aggregations:
+* query by metric type and time range
+* daily and weekly aggregations (min, max, avg)
 
-* daily metrics
-* weekly metrics
-* moving averages
+Data retention policy (auto-drop old raw data).
 
-Metric queries:
+Data purge:
 
-* query by time range
-* query by metric type
-
-Data retention policies.
+* delete all metrics for a user on account deletion
 
 ### Endpoints
 
 ```
 POST /metrics
-GET /metrics?type=heartRate
-GET /metrics/summary/daily
-GET /metrics/summary/weekly
+GET  /metrics?type=heartRate&from=&to=
+GET  /metrics/summary/daily
+GET  /metrics/summary/weekly
+```
+
+### Events Consumed
+
+```
+UserDeleted
 ```
 
 ### Events Produced
@@ -344,31 +346,34 @@ Activity feed and social interactions.
 
 Feed generation:
 
-* workout activity posts
-* achievement posts
-* social updates
+* workout activity posts (created via event from Workout Service)
+* achievement posts (created via event from Analytics Service)
+
+User data lifecycle:
+
+* sync display name and avatar in posts on profile update
+* purge all posts, likes, and comments on account deletion
 
 User interactions:
 
-* like activity
-* comment activity
-* delete comment
+* like / unlike an activity
+* add and delete comments
 
 Feed retrieval:
 
-* user feed
-* profile activity feed
-
-Pagination support.
+* personal feed (activities from followed users)
+* profile activity feed for any user
+* cursor-based pagination
 
 ### Endpoints
 
 ```
-GET /feed
-GET /feed/user/{id}
-POST /feed/{id}/like
-POST /feed/{id}/comment
-DELETE /feed/comment/{id}
+GET    /feed
+GET    /feed/users/{id}
+POST   /feed/{id}/like
+DELETE /feed/{id}/like
+POST   /feed/{id}/comments
+DELETE /feed/comments/{commentId}
 ```
 
 ### Events Consumed
@@ -376,6 +381,8 @@ DELETE /feed/comment/{id}
 ```
 WorkoutCompleted
 AchievementUnlocked
+UserProfileUpdated
+UserDeleted
 ```
 
 ### Events Produced
@@ -389,44 +396,46 @@ FeedLiked
 
 # Phase 7 — Analytics Service
 
-Technology: Spring Boot
+Technology: Spring Boot (Kotlin)
 
 ### Responsibilities
 
-Fitness analysis and training insights.
+Fitness analysis and training insights derived from workout and metrics data.
 
 ### Features
 
 Workout analytics:
 
-* total training volume
+* total training volume over a period
 * average workout duration
-* frequency analysis
+* workout frequency per week
 
 Health analytics:
 
 * heart rate trends
 * calorie trends
-* recovery metrics
 
 Performance insights:
 
-* weekly progress
-* monthly trends
+* weekly and monthly progress summaries
 * training intensity score
 
-Recommendations:
+Rule-based recommendations:
 
-* suggested rest days
-* suggested training volume
+* suggested rest days based on recent session frequency
+* suggested volume adjustments based on trend
+
+User data lifecycle:
+
+* purge all analytics data for a user on account deletion
 
 ### Endpoints
 
 ```
 GET /analytics/weekly
+GET /analytics/monthly
 GET /analytics/progress
 GET /analytics/recovery
-GET /analytics/performance
 ```
 
 ### Events Consumed
@@ -434,13 +443,13 @@ GET /analytics/performance
 ```
 WorkoutCompleted
 MetricRecorded
+UserDeleted
 ```
 
 ### Events Produced
 
 ```
 AchievementUnlocked
-TrainingInsightGenerated
 ```
 
 ---
@@ -451,30 +460,36 @@ Technology: Fastify
 
 ### Responsibilities
 
-User notification delivery.
+In-app notification delivery for fitness and social events.
 
 ### Features
 
-Notification generation:
+Notification creation (via consumed events):
 
-* workout completion
-* achievements
-* social interactions
+* welcome notification on account creation
+* workout completion confirmation
+* achievement unlocked
+* new comment on own activity
+* new like on own activity
 
-Notification storage.
+User data lifecycle:
 
-Notification delivery:
+* sync notification preferences on profile update
+* purge all notifications for a user on account deletion
 
-* in-app notifications
-* optional email support
+Notification storage and retrieval:
 
-User notification settings.
+* list notifications (unread first)
+* mark individual notification as read
+* mark all as read
+
+Notification filtering by user preferences (set in User Service).
 
 ### Endpoints
 
 ```
-GET /notifications
-POST /notifications/read
+GET  /notifications
+POST /notifications/{id}/read
 POST /notifications/read-all
 ```
 
@@ -485,6 +500,9 @@ WorkoutCompleted
 AchievementUnlocked
 FeedCommentAdded
 FeedLiked
+UserCreated
+UserProfileUpdated
+UserDeleted
 ```
 
 ---
@@ -629,7 +647,7 @@ OpenTelemetry tracing for:
 
 * gateway requests
 * service-to-service calls
-* Kafka processing
+* RabbitMQ message processing
 
 Deliverable:
 
@@ -646,7 +664,7 @@ Unit tests for each service.
 Integration tests:
 
 * database interactions
-* Kafka messaging
+* RabbitMQ messaging
 
 Contract tests:
 
