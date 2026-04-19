@@ -1,0 +1,17 @@
+info:
+  name: Delete user profile
+  type: http
+  seq: 5
+  tags:
+    - user-profile-controller
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/{{service}}/profiles/v1"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

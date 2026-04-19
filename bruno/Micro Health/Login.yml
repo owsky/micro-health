@@ -1,0 +1,36 @@
+info:
+  name: Login
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/realms/micro-health-realm/protocol/openid-connect/token
+  body:
+    type: form-urlencoded
+    data:
+      - name: grant_type
+        value: password
+      - name: client_id
+        value: apisix-client
+      - name: client_secret
+        value: keycloak-secret
+      - name: username
+        value: test-user
+      - name: password
+        value: test-password
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        res = res.getBody();
+        bru.setEnvVar("access_token", res.access_token);
+        bru.setEnvVar("refresh_token", res.refresh_token);
+        bru.setEnvVar("token_expires_at", Date.now() + (res.expires_in - 30) * 1000);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
