@@ -1,6 +1,10 @@
 plugin_configs:
   - id: 1
     plugins:
+      request-id:
+        header_name: X-Trace-Id
+        include_in_response: true
+        algorithm: uuid
       openid-connect:
         client_id: "apisix-client"
         client_secret: "${{KEYCLOAK_SECRET}}"
