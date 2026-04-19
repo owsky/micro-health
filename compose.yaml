@@ -18,8 +18,8 @@ services:
       - apisix-net
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.6.0
-    command: start-dev --import-realm
+    build: ./infrastructure/keycloak
+    command: start --optimized --import-realm --http-enabled=true --hostname-strict=false
     env_file:
       - ./infrastructure/keycloak/.env
     volumes:
@@ -36,7 +36,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 30s
 
   # --- APACHE APISIX GATEWAY ---
   apisix:
