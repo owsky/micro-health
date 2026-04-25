@@ -1,5 +1,6 @@
 package com.example.userservice.features.profile.entity
 
+import com.example.userservice.features.fitnessgoals.entity.FitnessGoalsEntity
 import com.example.userservice.features.preferences.entity.PreferencesEntity
 import com.example.userservice.features.profile.enums.GenderEnum
 import jakarta.persistence.*
@@ -22,5 +23,9 @@ class UserProfileEntity(
 
     @OneToOne(
         mappedBy = "userProfile", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true
-    ) var preferences: PreferencesEntity? = null
+    ) var preferences: PreferencesEntity? = null,
+
+    @OneToOne(
+        mappedBy = "userProfile", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true
+    ) var fitnessGoals: FitnessGoalsEntity? = null
 )

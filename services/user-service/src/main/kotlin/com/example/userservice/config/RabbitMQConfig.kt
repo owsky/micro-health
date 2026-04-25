@@ -20,6 +20,8 @@ class RabbitMQConfig {
         const val USER_DELETED_ROUTING_KEY = "user.deleted"
         const val PREFERENCES_UPDATED_QUEUE = "preferences.updated.queue"
         const val PREFERENCES_UPDATED_ROUTING_KEY = "preferences.updated"
+        const val FITNESS_GOALS_UPDATED_QUEUE = "fitness.goals.updated.queue"
+        const val FITNESS_GOALS_UPDATED_ROUTING_KEY = "fitness.goals.updated"
     }
 
     @Bean
@@ -52,6 +54,13 @@ class RabbitMQConfig {
     @Bean
     fun preferencesUpdatedBinding(preferencesUpdatedQueue: Queue, userExchange: TopicExchange): Binding =
         BindingBuilder.bind(preferencesUpdatedQueue).to(userExchange).with(PREFERENCES_UPDATED_ROUTING_KEY)
+
+    @Bean
+    fun fitnessGoalsUpdatedQueue(): Queue = QueueBuilder.durable(FITNESS_GOALS_UPDATED_QUEUE).ttl(3600000).build()
+
+    @Bean
+    fun fitnessGoalsUpdatedBinding(fitnessGoalsUpdatedQueue: Queue, userExchange: TopicExchange): Binding =
+        BindingBuilder.bind(fitnessGoalsUpdatedQueue).to(userExchange).with(FITNESS_GOALS_UPDATED_ROUTING_KEY)
 
     @Bean
     fun messageConverter(): JacksonJsonMessageConverter = JacksonJsonMessageConverter()
