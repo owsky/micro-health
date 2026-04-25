@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/migrations/001-create-user-profile.sql
   - include:
       file: db/changelog/migrations/002-alter-user-profile.sql
+  - include:
+      file: db/changelog/migrations/003-create-user-preferences.sql

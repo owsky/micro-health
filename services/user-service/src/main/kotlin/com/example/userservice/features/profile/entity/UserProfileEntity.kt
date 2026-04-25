@@ -1,5 +1,6 @@
 package com.example.userservice.features.profile.entity
 
+import com.example.userservice.features.preferences.entity.PreferencesEntity
 import com.example.userservice.features.profile.enums.GenderEnum
 import jakarta.persistence.*
 import java.time.LocalDate
@@ -18,4 +19,8 @@ class UserProfileEntity(
     @Column(nullable = false) var birthday: LocalDate,
 
     @Column(nullable = false) @Enumerated(EnumType.STRING) var gender: GenderEnum,
+
+    @OneToOne(
+        mappedBy = "userProfile", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true
+    ) var preferences: PreferencesEntity? = null
 )
