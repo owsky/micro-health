@@ -5,6 +5,7 @@ services:
   # --- KEYCLOAK ---
   keycloak-db:
     image: postgres:18.3
+    restart: unless-stopped
     volumes:
       - keycloak_data:/var/lib/postgresql
     env_file:
@@ -19,6 +20,7 @@ services:
 
   keycloak:
     build: ./infrastructure/keycloak
+    restart: unless-stopped
     command: start --optimized --import-realm --http-enabled=true --hostname=http://localhost:8080
     env_file:
       - ./infrastructure/keycloak/.env
@@ -36,12 +38,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 20s
 
   # --- APACHE APISIX GATEWAY ---
   apisix:
     image: apache/apisix:3.13.0-debian
-    restart: always
+    restart: unless-stopped
     env_file:
       - ./infrastructure/apisix/.env
       - ./infrastructure/keycloak/.env
@@ -49,8 +51,6 @@ services:
       - ./infrastructure/apisix/config.yaml:/usr/local/apisix/conf/config.yaml
       - ./infrastructure/apisix/apisix.yaml:/usr/local/apisix/conf/apisix.yaml
     depends_on:
-      user-service:
-        condition: service_healthy
       keycloak:
         condition: service_healthy
     networks:
@@ -65,6 +65,7 @@ services:
   # --- RABBITMQ ---
   rabbitmq:
     image: rabbitmq:4-management
+    restart: unless-stopped
     env_file:
       - ./infrastructure/rabbitmq/.env
     volumes:

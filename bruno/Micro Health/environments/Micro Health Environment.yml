@@ -13,7 +13,7 @@ variables:
   - name: realm
     value: micro-health-realm
   - name: client_id
-    value: apisix-client
+    value: frontend-client
   - name: client_secret
     value: keycloak-secret
   - name: access_token

@@ -12,7 +12,7 @@ http:
       - name: grant_type
         value: password
       - name: client_id
-        value: apisix-client
+        value: frontend-client
       - name: client_secret
         value: keycloak-secret
       - name: username

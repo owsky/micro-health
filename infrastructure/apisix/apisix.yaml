@@ -6,12 +6,11 @@ plugin_configs:
         include_in_response: true
         algorithm: uuid
       openid-connect:
-        client_id: "apisix-client"
-        client_secret: "${{KEYCLOAK_SECRET}}"
+        client_id: "${{BACKEND_CLIENT_ID}}"
+        client_secret: "${{BACKEND_CLIENT_SECRET}}"
         discovery: "http://host.docker.internal:8080/realms/micro-health-realm/.well-known/openid-configuration"
         bearer_only: true
-        realm: "micro-health-realm"
-        redirect_uri: "http://localhost:80/callback"
+        realm: "${{REALM_NAME}}"
         # --- Identity Injection Headers ---
         set_access_token_header: true # Sends X-Access-Token
         set_userinfo_header: true # Sends X-Userinfo (base64-encoded JSON)

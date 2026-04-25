@@ -15,7 +15,9 @@ conf_listen:
 
 nginx_config:
   envs:
-    - KEYCLOAK_SECRET
+    - BACKEND_CLIENT_ID
+    - BACKEND_CLIENT_SECRET
+    - REALM_NAME
     - SESSION_SECRET
     - USER_SERVICE_NODE
     - WORKOUT_SERVICE_NODE
