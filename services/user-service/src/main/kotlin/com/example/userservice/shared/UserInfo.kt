@@ -6,6 +6,6 @@ data class UserInfo(
     @JsonProperty("preferred_username")
     val preferredUsername: String,
     val sub: String? = null,
-    val email: String? = null
+    val email: String
 )
 

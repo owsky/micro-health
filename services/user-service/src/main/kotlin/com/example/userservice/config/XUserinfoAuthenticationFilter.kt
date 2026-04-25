@@ -23,7 +23,7 @@ class XUserinfoAuthenticationFilter(private val userInfoDecoder: UserInfoDecoder
             try {
                 val userInfo = userInfoDecoder.decode(header)
                 val auth = UsernamePasswordAuthenticationToken(
-                    userInfo.preferredUsername,
+                    userInfo,
                     null,
                     listOf(SimpleGrantedAuthority("ROLE_USER"))
                 )
