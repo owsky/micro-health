@@ -15,12 +15,12 @@ class FitnessGoalsController(private val service: FitnessGoalsService) {
 
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)
-    fun getMyGoals(@AuthenticationPrincipal userInfo: UserInfo): FitnessGoalsResponse? =
-        service.getGoalsByUsername(username = userInfo.preferredUsername)
+    fun getMyGoals(@AuthenticationPrincipal userInfo: UserInfo): FitnessGoalsResponse =
+        service.getFitnessGoals(userInfo)
 
     @PatchMapping("/me")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.CREATED)
     fun updateMyGoals(
         @AuthenticationPrincipal userInfo: UserInfo, @Valid @RequestBody request: UpdateFitnessGoalsRequest
-    ): FitnessGoalsResponse = service.updateGoalsByUsername(username = userInfo.preferredUsername, request = request)
+    ): FitnessGoalsResponse = service.updateFitnessGoals(userInfo, request)
 }

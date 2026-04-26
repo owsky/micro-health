@@ -16,12 +16,11 @@ class PreferencesController(
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     fun getMyPreferences(@AuthenticationPrincipal userInfo: UserInfo): PreferencesResponse =
-        service.getPreferencesByUsername(username = userInfo.preferredUsername)
+        service.getPreferences(userInfo)
 
     @PutMapping("/me")
     @ResponseStatus(HttpStatus.CREATED)
     fun updateMyPreferences(
         @AuthenticationPrincipal userInfo: UserInfo, @RequestBody request: UpdatePreferencesRequest
-    ): PreferencesResponse =
-        service.updatePreferencesByUsername(username = userInfo.preferredUsername, request = request)
+    ): PreferencesResponse = service.updatePreferences(userInfo, request)
 }

@@ -24,8 +24,7 @@ class UserProfileServiceImpl(
 
     @Transactional
     override fun createUserProfile(userInfo: UserInfo, request: CreateUserProfileRequest): UserProfileResponse {
-        repository.findByIdOrNull(userInfo.preferredUsername)
-            ?.let { throw ConflictException("User profile already exists") }
+        repository.findByIdOrNull(userInfo.username)?.let { throw ConflictException("User profile already exists") }
         val saved = repository.save(UserProfileEntity(request, userInfo))
         val response = saved.toResponse()
         eventPublisher.publishUserCreated(response)
@@ -33,7 +32,7 @@ class UserProfileServiceImpl(
     }
 
     override fun getUserProfile(userInfo: UserInfo): UserProfileResponse =
-        repository.findByIdOrNull(userInfo.preferredUsername)?.toResponse()
+        repository.findByIdOrNull(userInfo.username)?.toResponse()
             ?: throw ResourceNotFoundException("User profile not found")
 
 
@@ -41,14 +40,16 @@ class UserProfileServiceImpl(
         userInfo: UserInfo, username: String
     ): UserProfileResponse {
         val entity = repository.findByIdOrNull(username) ?: throw ResourceNotFoundException("User profile not found")
-        if (entity.preferences?.privateProfile == true) throw ForbiddenException("User profile is set to private")
+        if (entity.email != userInfo.email && entity.preferences?.privateProfile == true) throw ForbiddenException(
+            "User profile is set to private"
+        )
         return entity.toResponse()
     }
 
     @Transactional
     override fun updateUserProfile(userInfo: UserInfo, request: UpdateUserProfileRequest): UserProfileResponse {
-        val entity = repository.findByIdOrNull(userInfo.preferredUsername)
-            ?: throw ResourceNotFoundException("User profile not found")
+        val entity =
+            repository.findByIdOrNull(userInfo.username) ?: throw ResourceNotFoundException("User profile not found")
         val updated = entity.applyUpdate(request)
         val saved = repository.save(updated)
         val response = saved.toResponse()
@@ -57,8 +58,8 @@ class UserProfileServiceImpl(
     }
 
     override fun deleteUserProfile(userInfo: UserInfo) {
-        repository.deleteByUsername(userInfo.preferredUsername)
-        eventPublisher.publishUserDeleted(userInfo.preferredUsername)
+        repository.deleteByUsername(userInfo.username)
+        eventPublisher.publishUserDeleted(userInfo.username)
     }
 
 }

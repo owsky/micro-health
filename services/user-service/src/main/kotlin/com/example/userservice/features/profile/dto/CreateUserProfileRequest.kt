@@ -26,7 +26,7 @@ fun UserProfileEntity.toResponse(): UserProfileResponse = UserProfileResponse(
 )
 
 fun UserProfileEntity(request: CreateUserProfileRequest, userInfo: UserInfo): UserProfileEntity = UserProfileEntity(
-    username = userInfo.preferredUsername,
+    username = userInfo.username,
     email = userInfo.email,
     height = request.height,
     weight = request.weight,

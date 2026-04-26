@@ -11,7 +11,4 @@ class UserInfoDecoder(private val objectMapper: ObjectMapper) {
         val bytes = Base64.getDecoder().decode(xUserinfoHeader)
         return objectMapper.readValue(bytes, UserInfo::class.java)
     }
-
-    fun extractUsername(xUserinfoHeader: String): String =
-        decode(xUserinfoHeader).preferredUsername
 }

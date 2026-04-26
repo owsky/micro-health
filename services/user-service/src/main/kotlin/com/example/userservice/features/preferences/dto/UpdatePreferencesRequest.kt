@@ -21,6 +21,14 @@ fun PreferencesEntity(request: UpdatePreferencesRequest, userProfile: UserProfil
         userProfile = userProfile
     )
 
+fun PreferencesEntity.applyUpdate(request: UpdatePreferencesRequest): PreferencesEntity {
+    this.units = request.units
+    this.emailNotificationsEnabled = request.emailNotificationsEnabled
+    this.pushNotificationsEnabled = request.pushNotificationsEnabled
+    this.privateProfile = request.privateProfile
+    return this
+}
+
 fun PreferencesEntity.toResponse(): PreferencesResponse = PreferencesResponse(
     units = this.units,
     emailNotificationsEnabled = this.emailNotificationsEnabled,

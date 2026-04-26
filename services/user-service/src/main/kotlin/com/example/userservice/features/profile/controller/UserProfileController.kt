@@ -30,7 +30,7 @@ class UserProfileController(private val userProfileService: UserProfileService) 
     ): UserProfileResponse = userProfileService.createUserProfile(userInfo, body)
 
     @PatchMapping("/me")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.CREATED)
     fun updateMyProfile(
         @AuthenticationPrincipal userInfo: UserInfo, @RequestBody body: UpdateUserProfileRequest
     ): UserProfileResponse = userProfileService.updateUserProfile(userInfo, body)

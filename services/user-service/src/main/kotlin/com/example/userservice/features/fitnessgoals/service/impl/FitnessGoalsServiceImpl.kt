@@ -9,6 +9,8 @@ import com.example.userservice.features.fitnessgoals.messaging.FitnessGoalsEvent
 import com.example.userservice.features.fitnessgoals.repository.FitnessGoalsRepository
 import com.example.userservice.features.fitnessgoals.service.FitnessGoalsService
 import com.example.userservice.features.profile.repository.UserProfileRepository
+import com.example.userservice.shared.UserInfo
+import com.example.userservice.shared.exceptions.ConflictException
 import com.example.userservice.shared.exceptions.ResourceNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -19,16 +21,17 @@ class FitnessGoalsServiceImpl(
     private val userProfileRepository: UserProfileRepository,
     private val fitnessGoalsEventPublisher: FitnessGoalsEventPublisher
 ) : FitnessGoalsService {
-    override fun getGoalsByUsername(username: String): FitnessGoalsResponse? =
-        repository.findByIdOrNull(username)?.toResponse()
+    override fun getFitnessGoals(userInfo: UserInfo): FitnessGoalsResponse =
+        repository.findByIdOrNull(userInfo.username)?.toResponse()
+            ?: throw ResourceNotFoundException("User has not set any fitness goals")
 
-    override fun updateGoalsByUsername(
-        username: String, request: UpdateFitnessGoalsRequest
+    override fun updateFitnessGoals(
+        userInfo: UserInfo, request: UpdateFitnessGoalsRequest
     ): FitnessGoalsResponse {
-        val userProfileEntity = userProfileRepository.findByIdOrNull(username)
-            ?: throw ResourceNotFoundException("Cannot create fitness goals for a user without a profile")
-        val entity = repository.findByIdOrNull(username) ?: FitnessGoalsEntity(
-            username = username,
+        val userProfileEntity = userProfileRepository.findByIdOrNull(userInfo.username)
+            ?: throw ConflictException("Cannot create fitness goals for a user without a profile")
+        val entity = repository.findByIdOrNull(userInfo.username) ?: FitnessGoalsEntity(
+            username = userInfo.username,
             targetWeight = null,
             dailySteps = null,
             burnedCalories = null,
