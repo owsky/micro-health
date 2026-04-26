@@ -1,5 +1,6 @@
 package com.example.userservice.features.fitnessgoals.dto
 
+import com.example.userservice.features.fitnessgoals.entity.FitnessGoalsEntity
 import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.Max
@@ -18,3 +19,13 @@ data class UpdateFitnessGoalsRequest(
         get() = targetWeight != null || dailySteps != null || burnedCalories != null
 }
 
+fun FitnessGoalsEntity.applyUpdate(request: UpdateFitnessGoalsRequest): FitnessGoalsEntity {
+    request.targetWeight?.let { this.targetWeight = it }
+    request.dailySteps?.let { this.dailySteps = it }
+    request.burnedCalories?.let { this.burnedCalories = it }
+    return this
+}
+
+fun FitnessGoalsEntity.toResponse(): FitnessGoalsResponse = FitnessGoalsResponse(
+    targetWeight = this.targetWeight, dailySteps = this.dailySteps, burnedCalories = this.burnedCalories
+)

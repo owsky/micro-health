@@ -2,8 +2,9 @@ package com.example.userservice.features.fitnessgoals.service.impl
 
 import com.example.userservice.features.fitnessgoals.dto.FitnessGoalsResponse
 import com.example.userservice.features.fitnessgoals.dto.UpdateFitnessGoalsRequest
+import com.example.userservice.features.fitnessgoals.dto.applyUpdate
+import com.example.userservice.features.fitnessgoals.dto.toResponse
 import com.example.userservice.features.fitnessgoals.entity.FitnessGoalsEntity
-import com.example.userservice.features.fitnessgoals.mapper.FitnessGoalsMapper
 import com.example.userservice.features.fitnessgoals.messaging.FitnessGoalsEventPublisher
 import com.example.userservice.features.fitnessgoals.repository.FitnessGoalsRepository
 import com.example.userservice.features.fitnessgoals.service.FitnessGoalsService
@@ -15,12 +16,11 @@ import org.springframework.stereotype.Service
 @Service
 class FitnessGoalsServiceImpl(
     private val repository: FitnessGoalsRepository,
-    private val mapper: FitnessGoalsMapper,
     private val userProfileRepository: UserProfileRepository,
     private val fitnessGoalsEventPublisher: FitnessGoalsEventPublisher
 ) : FitnessGoalsService {
     override fun getGoalsByUsername(username: String): FitnessGoalsResponse? =
-        repository.findByIdOrNull(username)?.let { mapper.toResponse(it) }
+        repository.findByIdOrNull(username)?.toResponse()
 
     override fun updateGoalsByUsername(
         username: String, request: UpdateFitnessGoalsRequest
@@ -34,9 +34,9 @@ class FitnessGoalsServiceImpl(
             burnedCalories = null,
             userProfile = userProfileEntity
         )
-        val updated = mapper.applyUpdate(request, entity)
+        val updated = entity.applyUpdate(request)
         val saved = repository.save(updated)
-        val response = mapper.toResponse(saved)
+        val response = saved.toResponse()
         fitnessGoalsEventPublisher.publishFitnessGoalsUpdated(response)
         return response
     }

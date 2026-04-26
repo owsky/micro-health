@@ -1,5 +1,6 @@
 package com.example.userservice.features.profile.dto
 
+import com.example.userservice.features.profile.entity.UserProfileEntity
 import com.example.userservice.features.profile.enums.GenderEnum
 import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.validation.constraints.AssertTrue
@@ -22,4 +23,12 @@ data class UpdateUserProfileRequest(
     @get:AssertTrue(message = "At least one profile field must be provided")
     val hasAtLeastOneField: Boolean
         get() = height != null || weight != null || birthday != null || gender != null
+}
+
+fun UserProfileEntity.applyUpdate(request: UpdateUserProfileRequest): UserProfileEntity {
+    request.height?.let { this.height = it }
+    request.weight?.let { this.weight = it }
+    request.birthday?.let { this.birthday = it }
+    request.gender?.let { this.gender = it }
+    return this
 }
