@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/fitness-goals/v1")
 class FitnessGoalsController(private val service: FitnessGoalsService) {
 
-    @GetMapping
+    @GetMapping("/me")
     fun getMyGoals(@AuthenticationPrincipal userInfo: UserInfo): FitnessGoalsResponse? =
         service.getGoalsByUsername(username = userInfo.preferredUsername)
 
-    @PatchMapping
+    @PatchMapping("/me")
     fun updateMyGoals(
         @AuthenticationPrincipal userInfo: UserInfo, @Valid @RequestBody request: UpdateFitnessGoalsRequest
     ): FitnessGoalsResponse = service.updateGoalsByUsername(username = userInfo.preferredUsername, request = request)

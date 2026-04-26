@@ -34,12 +34,12 @@ class UserProfileController(
         @AuthenticationPrincipal userInfo: UserInfo, @Valid @RequestBody body: CreateUserProfileRequest
     ): UserProfileResponse = userProfileService.createUserProfile(userInfo, body)
 
-    @PatchMapping
+    @PatchMapping("/me")
     fun updateMyProfile(
         @AuthenticationPrincipal userInfo: UserInfo, @RequestBody body: UpdateUserProfileRequest
     ): UserProfileResponse = userProfileService.updateUserProfile(userInfo.preferredUsername, body)
 
-    @DeleteMapping
+    @DeleteMapping("/me")
     fun deleteMyProfile(@AuthenticationPrincipal userInfo: UserInfo): ResponseEntity<Unit> {
         userProfileService.deleteUserProfile(userInfo.preferredUsername)
         return ResponseEntity.noContent().build()

@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.*
 class PreferencesController(
     val service: PreferencesService
 ) {
-    @GetMapping
+    @GetMapping("/me")
     fun getMyPreferences(@AuthenticationPrincipal userInfo: UserInfo): PreferencesResponse =
         service.getPreferencesByUsername(username = userInfo.preferredUsername)
 
-    @PutMapping
+    @PutMapping("/me")
     fun updateMyPreferences(
         @AuthenticationPrincipal userInfo: UserInfo, @RequestBody request: UpdatePreferencesRequest
     ): PreferencesResponse =
