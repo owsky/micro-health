@@ -40,6 +40,13 @@ class GlobalExceptionHandler {
         return ValidationErrorResponse(errors, traceId = traceId())
     }
 
+    @ExceptionHandler(ForbiddenException::class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    fun handleForbidden(ex: ForbiddenException): ErrorResponse {
+        log.warn("Forbidden: ${ex.message}")
+        return ErrorResponse(HttpStatus.FORBIDDEN.value(), ex.message ?: "Forbidden", traceId())
+    }
+
     @ExceptionHandler(Exception::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun handleGeneric(ex: Exception): ErrorResponse {
@@ -49,10 +56,7 @@ class GlobalExceptionHandler {
 }
 
 data class ErrorResponse(
-    val status: Int,
-    val message: String,
-    val traceId: String,
-    val timestamp: Instant = Clock.System.now()
+    val status: Int, val message: String, val traceId: String, val timestamp: Instant = Clock.System.now()
 )
 
 data class ValidationErrorResponse(val errors: Map<String, String?>, val traceId: String)
