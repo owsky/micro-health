@@ -4,6 +4,7 @@ import com.example.userservice.features.preferences.dto.PreferencesResponse
 import com.example.userservice.features.preferences.dto.UpdatePreferencesRequest
 import com.example.userservice.features.preferences.service.PreferencesService
 import com.example.userservice.shared.UserInfo
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
@@ -13,10 +14,12 @@ class PreferencesController(
     val service: PreferencesService
 ) {
     @GetMapping("/me")
+    @ResponseStatus(HttpStatus.OK)
     fun getMyPreferences(@AuthenticationPrincipal userInfo: UserInfo): PreferencesResponse =
         service.getPreferencesByUsername(username = userInfo.preferredUsername)
 
     @PutMapping("/me")
+    @ResponseStatus(HttpStatus.CREATED)
     fun updateMyPreferences(
         @AuthenticationPrincipal userInfo: UserInfo, @RequestBody request: UpdatePreferencesRequest
     ): PreferencesResponse =

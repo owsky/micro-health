@@ -1,47 +1,41 @@
 package com.example.userservice.features.profile.controller
 
-import com.example.userservice.features.profile.dto.UpdateUserProfileRequest
 import com.example.userservice.features.profile.dto.CreateUserProfileRequest
+import com.example.userservice.features.profile.dto.UpdateUserProfileRequest
 import com.example.userservice.features.profile.dto.UserProfileResponse
 import com.example.userservice.features.profile.service.UserProfileService
 import com.example.userservice.shared.UserInfo
-import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
 import jakarta.validation.Valid
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.HttpStatus
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/profiles/v1")
-class UserProfileController(
-    private val userProfileService: UserProfileService
-) {
+class UserProfileController(private val userProfileService: UserProfileService) {
     @GetMapping("/me")
+    @ResponseStatus(HttpStatus.OK)
     fun getMyProfile(@AuthenticationPrincipal userInfo: UserInfo): UserProfileResponse =
-        userProfileService.getUserProfile(userInfo.preferredUsername)
+        userProfileService.getUserProfile(userInfo)
 
     @GetMapping("/{username}")
-    fun getProfile(@PathVariable username: String): UserProfileResponse = userProfileService.getUserProfile(username)
+    @ResponseStatus(HttpStatus.OK)
+    fun getProfile(@AuthenticationPrincipal userInfo: UserInfo, @PathVariable username: String): UserProfileResponse =
+        userProfileService.getUserProfileByUsername(userInfo, username)
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     fun createProfile(
         @AuthenticationPrincipal userInfo: UserInfo, @Valid @RequestBody body: CreateUserProfileRequest
     ): UserProfileResponse = userProfileService.createUserProfile(userInfo, body)
 
     @PatchMapping("/me")
+    @ResponseStatus(HttpStatus.OK)
     fun updateMyProfile(
         @AuthenticationPrincipal userInfo: UserInfo, @RequestBody body: UpdateUserProfileRequest
-    ): UserProfileResponse = userProfileService.updateUserProfile(userInfo.preferredUsername, body)
+    ): UserProfileResponse = userProfileService.updateUserProfile(userInfo, body)
 
     @DeleteMapping("/me")
-    fun deleteMyProfile(@AuthenticationPrincipal userInfo: UserInfo): ResponseEntity<Unit> {
-        userProfileService.deleteUserProfile(userInfo.preferredUsername)
-        return ResponseEntity.noContent().build()
-    }
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteMyProfile(@AuthenticationPrincipal userInfo: UserInfo) = userProfileService.deleteUserProfile(userInfo)
 }

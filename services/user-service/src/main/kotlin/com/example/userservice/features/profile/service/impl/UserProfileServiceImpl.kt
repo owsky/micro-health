@@ -9,6 +9,7 @@ import com.example.userservice.features.profile.repository.UserProfileRepository
 import com.example.userservice.features.profile.service.UserProfileService
 import com.example.userservice.shared.UserInfo
 import com.example.userservice.shared.exceptions.ConflictException
+import com.example.userservice.shared.exceptions.ForbiddenException
 import com.example.userservice.shared.exceptions.ResourceNotFoundException
 import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
@@ -20,7 +21,7 @@ class UserProfileServiceImpl(
     private val mapper: UserProfileMapper,
     private val eventPublisher: UserProfileEventPublisher
 ) : UserProfileService {
-    
+
     @Transactional
     override fun createUserProfile(userInfo: UserInfo, request: CreateUserProfileRequest): UserProfileResponse {
         repository.findByIdOrNull(userInfo.preferredUsername)
@@ -31,13 +32,23 @@ class UserProfileServiceImpl(
         return response
     }
 
-    override fun getUserProfile(userName: String): UserProfileResponse = mapper.toResponse(
-        repository.findByIdOrNull(userName) ?: throw ResourceNotFoundException("User profile not found")
+    override fun getUserProfile(userInfo: UserInfo): UserProfileResponse = mapper.toResponse(
+        repository.findByIdOrNull(userInfo.preferredUsername)
+            ?: throw ResourceNotFoundException("User profile not found")
     )
 
+    override fun getUserProfileByUsername(
+        userInfo: UserInfo, username: String
+    ): UserProfileResponse {
+        val entity = repository.findByIdOrNull(username) ?: throw ResourceNotFoundException("User profile not found")
+        if (entity.preferences?.privateProfile == true) throw ForbiddenException("User profile is set to private")
+        return mapper.toResponse(entity)
+    }
+
     @Transactional
-    override fun updateUserProfile(userName: String, request: UpdateUserProfileRequest): UserProfileResponse {
-        val entity = repository.findByIdOrNull(userName) ?: throw ResourceNotFoundException("User profile not found")
+    override fun updateUserProfile(userInfo: UserInfo, request: UpdateUserProfileRequest): UserProfileResponse {
+        val entity = repository.findByIdOrNull(userInfo.preferredUsername)
+            ?: throw ResourceNotFoundException("User profile not found")
         val updated = mapper.applyUpdate(request, entity)
         val saved = repository.save(updated)
         val response = mapper.toResponse(saved)
@@ -45,9 +56,9 @@ class UserProfileServiceImpl(
         return response
     }
 
-    override fun deleteUserProfile(userName: String) {
-        repository.deleteByUsername(userName)
-        eventPublisher.publishUserDeleted(userName)
+    override fun deleteUserProfile(userInfo: UserInfo) {
+        repository.deleteByUsername(userInfo.preferredUsername)
+        eventPublisher.publishUserDeleted(userInfo.preferredUsername)
     }
 
 }

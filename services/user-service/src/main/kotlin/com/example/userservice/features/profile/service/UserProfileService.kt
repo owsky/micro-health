@@ -8,9 +8,11 @@ import com.example.userservice.shared.UserInfo
 interface UserProfileService {
     fun createUserProfile(userInfo: UserInfo, request: CreateUserProfileRequest): UserProfileResponse
 
-    fun getUserProfile(userName: String): UserProfileResponse
+    fun getUserProfile(userInfo: UserInfo): UserProfileResponse
 
-    fun updateUserProfile(userName: String, request: UpdateUserProfileRequest): UserProfileResponse
+    fun getUserProfileByUsername(userInfo: UserInfo, username: String): UserProfileResponse
 
-    fun deleteUserProfile(userName: String)
+    fun updateUserProfile(userInfo: UserInfo, request: UpdateUserProfileRequest): UserProfileResponse
+
+    fun deleteUserProfile(userInfo: UserInfo)
 }
