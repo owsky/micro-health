@@ -148,7 +148,6 @@ Features:
 * identity header injection (`X-Userinfo`, `X-Access-Token`) to upstream services
 * rate limiting
 * request ID generation for distributed tracing
-* upstream round-robin load balancing
 
 Deliverable:
 
@@ -198,19 +197,25 @@ Privacy:
 ### Endpoints
 
 ```
-GET    /users/me
-PUT    /users/me
-DELETE /users/me
-GET    /users/{id}
-PUT    /users/me/preferences
+GET    /profiles/v1/me
+GET    /profiles/v1/{username}
+POST   /profiles/v1/me
+PATCH  /profiles/v1/me
+DELETE /profiles/v1/me
+GET    /preferences/v1/me
+PUT    /preferences/v1/me
+GET    /fitness-goals/v1/me
+PUT    /fitness-goals/v1/me
 ```
 
 ### Events Produced
 
 ```
 UserCreated
-UserProfileUpdated
+UserUpdated
 UserDeleted
+PreferencesUpdated
+FitnessGoalsUpdated
 ```
 
 ---
@@ -222,7 +227,7 @@ Database: PostgreSQL
 
 ### Responsibilities
 
-Exercise catalog management and workout session tracking.
+Exercise catalog management and recorded workout storage.
 
 ### Features
 
@@ -238,20 +243,27 @@ Workout templates:
 * define sets, reps, and rest times per exercise
 * list and manage own templates
 
-Workout sessions:
+Recorded workouts:
 
-* start a session from a template or ad-hoc
-* log sets with actual reps and weight
-* complete session (calculates duration and total volume)
+* create a recorded workout from a template, manual entry, or simulated device sync
+* store performed sets with actual reps, weight, and notes
+* support draft and completed workout states
+* finalize a workout record and calculate duration and total volume
 
 History:
 
-* list past sessions with summary stats
-* retrieve full session details
+* list recorded workouts with summary stats
+* retrieve full workout details
 
 User data lifecycle:
 
-* purge all exercises, templates, and sessions for a user on account deletion
+* purge all exercises, templates, and recorded workouts for a user on account deletion
+
+#### Data model notes
+
+* the service stores workout data after it has been recorded locally or entered manually
+* live sensor streaming is out of scope for this service
+* workout records may include a source such as manual, imported, or simulated-sync
 
 ### Endpoints
 
@@ -261,10 +273,11 @@ POST   /exercises
 GET    /workouts
 POST   /workouts
 GET    /workouts/{id}
-POST   /workouts/{id}/sessions/start
-POST   /workouts/{id}/sessions/{sessionId}/sets
-POST   /workouts/{id}/sessions/{sessionId}/complete
-GET    /sessions/history
+POST   /recorded-workouts
+GET    /recorded-workouts/{id}
+PATCH  /recorded-workouts/{id}
+POST   /recorded-workouts/{id}/finalize
+GET    /recorded-workouts/history
 ```
 
 ### Events Consumed
@@ -381,7 +394,7 @@ DELETE /feed/comments/{commentId}
 ```
 WorkoutCompleted
 AchievementUnlocked
-UserProfileUpdated
+UserUpdated
 UserDeleted
 ```
 
@@ -422,7 +435,7 @@ Performance insights:
 
 Rule-based recommendations:
 
-* suggested rest days based on recent session frequency
+* suggested rest days based on recent workout frequency
 * suggested volume adjustments based on trend
 
 User data lifecycle:
@@ -501,7 +514,7 @@ AchievementUnlocked
 FeedCommentAdded
 FeedLiked
 UserCreated
-UserProfileUpdated
+UserUpdated
 UserDeleted
 ```
 
@@ -549,11 +562,11 @@ Workout builder:
 * create workout plans
 * edit workout plans
 
-Workout execution interface:
+Workout recording interface:
 
-* active workout session UI
-* record sets/reps
-* complete workout
+* create a workout record from a template or manual entry
+* enter performed sets/reps/weight
+* save draft workouts and finalize completed workouts
 
 Workout history.
 
@@ -562,7 +575,7 @@ Pages:
 ```
 exercises
 create workout
-active workout
+record workout
 history
 ```
 
