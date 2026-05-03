@@ -223,7 +223,7 @@ FitnessGoalsUpdated
 # Phase 4 — Workout Service
 
 Technology: .NET Core
-Database: PostgreSQL
+Database: SQL Server
 
 ### Responsibilities
 
