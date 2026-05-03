@@ -13,7 +13,6 @@ data class UserProfileResponse(
         description = "Email address", example = "name@email.com"
     ) val email: String,
 
-
     @Schema(description = "Height in centimeters", example = "175") val height: Int,
 
     @Schema(description = "Weight in kilograms", example = "70.5") val weight: Float,

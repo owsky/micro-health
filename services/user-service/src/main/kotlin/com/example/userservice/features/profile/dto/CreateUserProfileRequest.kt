@@ -1,19 +1,43 @@
 package com.example.userservice.features.profile.dto
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.example.userservice.features.profile.entity.UserProfileEntity
 import com.example.userservice.features.profile.enums.GenderEnum
 import com.example.userservice.shared.UserInfo
+import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.*
 import java.time.LocalDate
 
+@Schema(description = "Payload for creating a user profile")
 data class CreateUserProfileRequest(
-    @field:Min(50) @field:Max(300) val height: Int,
+    @field:Min(50)
+    @field:Max(300)
+    @field:Schema(description = "Height in centimeters", example = "175", minimum = "50", maximum = "300")
+    val height: Int,
 
-    @field:Positive val weight: Float,
+    @field:Positive
+    @field:Schema(description = "Weight in kilograms", example = "70.5", minimum = "0")
+    val weight: Float,
 
-    @field:NotNull @field:Past val birthday: LocalDate,
+    @field:NotNull
+    @field:Past
+    @field:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @field:Schema(
+        description = "Birthday in ISO-8601 date format (yyyy-MM-dd)",
+        type = "string",
+        format = "date",
+        pattern = "yyyy-MM-dd",
+        example = "1990-01-31"
+    )
+    val birthday: LocalDate,
 
-    @field:NotNull val gender: GenderEnum
+    @field:NotNull
+    @field:Schema(
+        description = "Gender of the user",
+        example = "MALE",
+        allowableValues = ["MALE", "FEMALE", "OTHER"]
+    )
+    val gender: GenderEnum
 )
 
 fun UserProfileEntity.toResponse(): UserProfileResponse = UserProfileResponse(
