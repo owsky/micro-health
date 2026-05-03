@@ -1,0 +1,25 @@
+services:
+  apisix:
+    image: apache/apisix:3.13.0-debian
+    restart: unless-stopped
+    env_file:
+      - ./.env
+      - ../keycloak/.env
+    volumes:
+      - ./config.yaml:/usr/local/apisix/conf/config.yaml
+      - ./apisix.yaml:/usr/local/apisix/conf/apisix.yaml
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      workout-service:
+        condition: service_healthy
+    networks:
+      - apisix-net
+      - backend-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "80:9080"
+      - "443:9443"

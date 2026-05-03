@@ -22,7 +22,7 @@ WORKDIR /app
 RUN apk add --no-cache curl
 
 # Expose the port
-EXPOSE 5000
+EXPOSE 8080
 
 # Copy the built jar from the build stage
 COPY --from=build /app/target/*.jar app.jar

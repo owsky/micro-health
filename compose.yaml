@@ -1,90 +1,11 @@
 include:
-  - path: ./services/user-service/user-compose.yaml
-
-services:
-  # --- KEYCLOAK ---
-  keycloak-db:
-    image: postgres:18.3
-    restart: unless-stopped
-    volumes:
-      - keycloak_data:/var/lib/postgresql
-    env_file:
-      - ./infrastructure/keycloak/.env
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keycloak"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - apisix-net
-
-  keycloak:
-    build: ./infrastructure/keycloak
-    restart: unless-stopped
-    command: start --optimized --import-realm --http-enabled=true --hostname=http://localhost:8080
-    env_file:
-      - ./infrastructure/keycloak/.env
-    volumes:
-      - ./infrastructure/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
-    depends_on:
-      keycloak-db:
-        condition: service_healthy
-    networks:
-      - apisix-net
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ['CMD-SHELL', "{ printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-  # --- APACHE APISIX GATEWAY ---
-  apisix:
-    image: apache/apisix:3.13.0-debian
-    restart: unless-stopped
-    env_file:
-      - ./infrastructure/apisix/.env
-      - ./infrastructure/keycloak/.env
-    volumes:
-      - ./infrastructure/apisix/config.yaml:/usr/local/apisix/conf/config.yaml
-      - ./infrastructure/apisix/apisix.yaml:/usr/local/apisix/conf/apisix.yaml
-    depends_on:
-      keycloak:
-        condition: service_healthy
-    networks:
-      - apisix-net
-      - backend-net
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "80:9080"
-      - "443:9443"
-
-  # --- RABBITMQ ---
-  rabbitmq:
-    image: rabbitmq:4-management
-    restart: unless-stopped
-    env_file:
-      - ./infrastructure/rabbitmq/.env
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - backend-net
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+  - path: ./infrastructure/apisix/compose.yaml
+  - path: ./infrastructure/keycloak/compose.yaml
+  - path: ./infrastructure/rabbitmq/compose.yaml
+  - path: ./infrastructure/scalar/compose.yaml
+  - path: ./services/user-service/compose.yaml
+  - path: ./services/workout-service/compose.yaml
 
 networks:
   apisix-net:
   backend-net:
-
-volumes:
-  keycloak_data:
-  rabbitmq_data:

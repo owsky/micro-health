@@ -32,6 +32,17 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <spring-cloud.version>2025.1.1</spring-cloud.version>
     </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>me.paulschwarz</groupId>
+                <artifactId>spring-dotenv-bom</artifactId>
+                <version>5.1.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <!-- ===== Web ===== -->
         <dependency>
@@ -161,6 +172,13 @@
             <artifactId>springmockk</artifactId>
             <version>5.0.1</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- ===== Dotenv ===== -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>springboot4-dotenv</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- ===== Dev Tools ===== -->

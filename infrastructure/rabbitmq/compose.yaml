@@ -1,0 +1,21 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - backend-net
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rabbitmq_data:

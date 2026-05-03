@@ -1,10 +1,16 @@
 plugin_configs:
-  - id: 1
+  - id: "open-id-plugin"
     plugins:
       request-id:
         header_name: X-Trace-Id
         include_in_response: true
         algorithm: uuid
+      cors:
+        allow_origins: "*" # TODO
+        allow_methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS"
+        allow_headers: "Authorization,Content-Type"
+        allow_credential: false
+        max_age: 3600
       openid-connect:
         client_id: "${{BACKEND_CLIENT_ID}}"
         client_secret: "${{BACKEND_CLIENT_SECRET}}"
@@ -17,66 +23,102 @@ plugin_configs:
         # ---------------------------------
         session:
           secret: "${{SESSION_SECRET}}"
+  - id: "open-api-plugin"
+    plugins:
+      request-id:
+        header_name: X-Trace-Id
+        include_in_response: true
+        algorithm: uuid
+      cors:
+        allow_origins: "*"
+        allow_methods: "GET,OPTIONS"
+        allow_headers: "Content-Type"
+        allow_credential: false
+        max_age: 3600
+
+upstreams:
+  - id: keycloak-upstream
+    type: roundrobin
+    retries: 1
+    retry_timeout: 2
+    nodes:
+      - host: host.docker.internal
+        port: 8080
+        weight: 1
+        priority: 10
+      - host: keycloak
+        port: 8080
+        weight: 1
+        priority: 1
+  - id: user-service-upstream
+    type: roundrobin
+    retries: 1
+    retry_timeout: 2
+    nodes:
+      - host: host.docker.internal
+        port: 5000
+        weight: 1
+        priority: 10
+      - host: user-service
+        port: 8080
+        weight: 1
+        priority: 1
+  - id: workout-service-upstream
+    type: roundrobin
+    retries: 1
+    retry_timeout: 2
+    nodes:
+      - host: host.docker.internal
+        port: 5001
+        weight: 1
+        priority: 10
+      - host: workout-service
+        port: 8080
+        weight: 1
+        priority: 1
 
 routes:
-  - id: 1
+  # KEYCLOAK
+  - id: "keycloak-route"
+    uri: "/auth/token"
+    plugin_config_id: "open-api-plugin"
+    upstream_id: "keycloak-upstream"
+    plugins:
+      proxy-rewrite:
+        uri: "/realms/micro-health-realm/protocol/openid-connect/token"
+  # USER SERVICE
+  - id: "user-service-open-api-route"
+    uri: "/api/user-service/openapi.json"
+    priority: 2
+    plugin_config_id: "open-api-plugin"
+    upstream_id: "user-service-upstream"
+    plugins:
+      proxy-rewrite:
+        uri: "/v3/api-docs"
+  - id: "user-service-route"
     uri: "/api/user-service/*"
-    name: "user-service-route"
-    plugin_config_id: 1
+    priority: 1
+    plugin_config_id: "open-id-plugin"
     upstream_id: "user-service-upstream"
     plugins:
       proxy-rewrite:
         regex_uri: ["^/api/user-service/(.*)", "/$1"]
-
-  - id: 2
-    uri: "/api/workouts/*"
-    name: "workout-service-route"
-    plugin_config_id: 1
+  # WORKOUT SERVICE
+  - id: "workout-service-open-api-route"
+    uri: "/api/workout-service/openapi.json"
+    priority: 2
+    plugin_config_id: "open-api-plugin"
     upstream_id: "workout-service-upstream"
+    plugins:
+      proxy-rewrite:
+        uri: "/openapi/v1.json"
+  - id: "workout-service-route"
+    uri: "/api/workout-service/*"
+    priority: 1
+    plugin_config_id: "open-id-plugin"
+    upstream_id: "workout-service-upstream"
+    plugins:
+      proxy-rewrite:
+        regex_uri: ["^/api/workout-service/(.*)", "/$1"]
 
-  - id: 3
-    uri: "/api/metrics/*"
-    name: "metrics-service-route"
-    plugin_config_id: 1
-    upstream_id: "metrics-service-upstream"
-
-  - id: 4
-    uri: "/api/feed/*"
-    name: "feed-service-route"
-    plugin_config_id: 1
-    upstream_id: "feed-service-upstream"
-
-  - id: 5
-    uri: "/api/notifications/*"
-    name: "notification-service-route"
-    plugin_config_id: 1
-    upstream_id: "notification-service-upstream"
-
-upstreams:
-  - id: "user-service-upstream"
-    type: roundrobin
-    nodes:
-      "${{USER_SERVICE_NODE}}": 1
-
-  - id: "workout-service-upstream"
-    type: roundrobin
-    nodes:
-      "${{WORKOUT_SERVICE_NODE}}": 1
-
-  - id: "metrics-service-upstream"
-    type: roundrobin
-    nodes:
-      "${{METRICS_SERVICE_NODE}}": 1
-
-  - id: "feed-service-upstream"
-    type: roundrobin
-    nodes:
-      "${{FEED_SERVICE_NODE}}": 1
-
-  - id: "notification-service-upstream"
-    type: roundrobin
-    nodes:
-      "${{NOTIFICATION_SERVICE_NODE}}": 1
-
-# Essential terminator for standalone files
 #END

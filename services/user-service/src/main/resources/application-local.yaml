@@ -1,0 +1,13 @@
+server:
+  port: 5000
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  rabbitmq:
+    host: localhost
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_DEFAULT_USER:guest}
+    password: ${RABBITMQ_DEFAULT_PASS:guest}

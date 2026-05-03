@@ -1,0 +1,13 @@
+services:
+  api-explorer:
+    build: .
+    env_file:
+      - ./.env
+    ports:
+      - "8090:80"
+    networks:
+      - backend-net
+      - apisix-net
+    depends_on:
+      apisix:
+        condition: service_started

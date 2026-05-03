@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+  <head>
+    <title>API Explorer</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+
+    <script>
+      const bearerScheme = {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      }
+
+      const KEYCLOAK_TOKEN_URL = "http://localhost/auth/token"
+      const SCALAR_AUTH_KEYS = [
+        "scalar-reference-auth-user-service",
+        "scalar-reference-auth-workout-service",
+      ]
+
+      function setScalarToken(token) {
+        const value = JSON.stringify({
+          secrets: {
+            bearerAuth: {
+              type: "http",
+              "x-scalar-secret-token": token,
+              "x-scalar-secret-username": "",
+              "x-scalar-secret-password": "",
+            },
+          },
+          selected: {},
+        })
+        SCALAR_AUTH_KEYS.forEach(key => localStorage.setItem(key, value))
+      }
+
+      async function refreshToken() {
+        const res = await fetch(KEYCLOAK_TOKEN_URL, {
+          method: "POST",
+          body: new URLSearchParams({
+            grant_type: "password",
+            client_id: "${SCALAR_CLIENT_ID}",
+            client_secret: "${SCALAR_CLIENT_SECRET}",
+            username: "${SCALAR_USERNAME}",
+            password: "${SCALAR_PASSWORD}",
+          }),
+        })
+        const data = await res.json()
+        setScalarToken(data.access_token)
+      }
+
+      function injectSecurity(spec) {
+        spec.components = spec.components ?? {}
+        spec.components.securitySchemes = { bearerAuth: bearerScheme }
+        spec.security = [{ bearerAuth: [] }]
+        return spec
+      }
+
+      Promise.all([
+        fetch("http://localhost/api/user-service/openapi.json").then(r =>
+          r.json(),
+        ),
+        fetch("http://localhost/api/workout-service/openapi.json").then(r =>
+          r.json(),
+        ),
+        refreshToken(),
+      ]).then(([userSpec, workoutSpec]) => {
+        Scalar.createApiReference("#app", [
+          {
+            sources: [
+              { content: injectSecurity(userSpec), title: "User Service" },
+            ],
+            servers: [
+              {
+                url: "http://localhost/api/user-service",
+                description: "Gateway",
+              },
+            ],
+            authentication: { preferredSecurityScheme: "bearerAuth" },
+            persistAuth: true,
+          },
+          {
+            sources: [
+              {
+                content: injectSecurity(workoutSpec),
+                title: "Workout Service",
+              },
+            ],
+            servers: [
+              {
+                url: "http://localhost/api/workout-service",
+                description: "Gateway",
+              },
+            ],
+            authentication: { preferredSecurityScheme: "bearerAuth" },
+            persistAuth: true,
+          },
+        ])
+
+        setInterval(refreshToken, 2 * 60 * 1000)
+      })
+    </script>
+  </body>
+</html>
