@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/migrations/004-create-fitness-goals.sql
   - include:
       file: db/changelog/migrations/005-alter-user-profile.sql
+  - include:
+      file: db/changelog/migrations/006-alter-user-profile.sql
