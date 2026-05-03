@@ -50,6 +50,25 @@ upstreams:
         port: 8080
         weight: 1
         priority: 1
+    checks:
+      active: &active-check
+        type: http
+        http_path: "/realms/micro-health-realm/health/ready"
+        healthy:
+          interval: 5
+          successes: 1
+        unhealthy:
+          interval: 5
+          http_failures: 3
+          timeouts: 2
+      passive: &passive-check
+        healthy:
+          http_statuses: [200, 201, 301, 302]
+          successes: 1
+        unhealthy:
+          http_statuses: [500, 502, 503, 504]
+          http_failures: 3
+          timeouts: 2
   - id: user-service-upstream
     type: roundrobin
     retries: 1
@@ -63,6 +82,11 @@ upstreams:
         port: 8080
         weight: 1
         priority: 1
+    checks:
+      active:
+        <<: *active-check
+        http_path: "/actuator/health"
+      passive: *passive-check
   - id: workout-service-upstream
     type: roundrobin
     retries: 1
@@ -76,6 +100,11 @@ upstreams:
         port: 8080
         weight: 1
         priority: 1
+    checks:
+      active:
+        <<: *active-check
+        http_path: "/healthz"
+      passive: *passive-check
 
 routes:
   # KEYCLOAK
