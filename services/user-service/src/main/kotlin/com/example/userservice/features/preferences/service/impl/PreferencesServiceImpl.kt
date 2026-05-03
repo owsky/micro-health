@@ -11,6 +11,7 @@ import com.example.userservice.features.preferences.service.PreferencesService
 import com.example.userservice.features.profile.repository.UserProfileRepository
 import com.example.userservice.shared.UserInfo
 import com.example.userservice.shared.exceptions.ResourceNotFoundException
+import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -24,7 +25,7 @@ class PreferencesServiceImpl(
         repository.findByIdOrNull(userInfo.username)?.toResponse()
             ?: throw ResourceNotFoundException("User preferences not found")
 
-
+    @Transactional
     override fun updatePreferences(
         userInfo: UserInfo, request: UpdatePreferencesRequest
     ): PreferencesResponse {
@@ -33,7 +34,7 @@ class PreferencesServiceImpl(
         val entity = repository.findByIdOrNull(userInfo.username)?.applyUpdate(request) ?: PreferencesEntity(
             request, userProfileEntity
         )
-        val saved = repository.save(entity)
+        val saved = repository.saveAndFlush(entity)
         val response = saved.toResponse()
         eventPublisher.publishPreferencesUpdated(response)
         return response

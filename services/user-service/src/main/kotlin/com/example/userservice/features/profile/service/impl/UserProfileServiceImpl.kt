@@ -25,7 +25,7 @@ class UserProfileServiceImpl(
     @Transactional
     override fun createUserProfile(userInfo: UserInfo, request: CreateUserProfileRequest): UserProfileResponse {
         repository.findByIdOrNull(userInfo.username)?.let { throw ConflictException("User profile already exists") }
-        val saved = repository.save(UserProfileEntity(request, userInfo))
+        val saved = repository.saveAndFlush(UserProfileEntity(request, userInfo))
         val response = saved.toResponse()
         eventPublisher.publishUserCreated(response)
         return response
@@ -51,7 +51,7 @@ class UserProfileServiceImpl(
         val entity =
             repository.findByIdOrNull(userInfo.username) ?: throw ResourceNotFoundException("User profile not found")
         val updated = entity.applyUpdate(request)
-        val saved = repository.save(updated)
+        val saved = repository.saveAndFlush(updated)
         val response = saved.toResponse()
         eventPublisher.publishUserUpdated(response)
         return response

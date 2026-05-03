@@ -12,6 +12,7 @@ import com.example.userservice.features.profile.repository.UserProfileRepository
 import com.example.userservice.shared.UserInfo
 import com.example.userservice.shared.exceptions.ConflictException
 import com.example.userservice.shared.exceptions.ResourceNotFoundException
+import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -25,6 +26,7 @@ class FitnessGoalsServiceImpl(
         repository.findByIdOrNull(userInfo.username)?.toResponse()
             ?: throw ResourceNotFoundException("User has not set any fitness goals")
 
+    @Transactional
     override fun updateFitnessGoals(
         userInfo: UserInfo, request: UpdateFitnessGoalsRequest
     ): FitnessGoalsResponse {
@@ -38,7 +40,7 @@ class FitnessGoalsServiceImpl(
             userProfile = userProfileEntity
         )
         val updated = entity.applyUpdate(request)
-        val saved = repository.save(updated)
+        val saved = repository.saveAndFlush(updated)
         val response = saved.toResponse()
         fitnessGoalsEventPublisher.publishFitnessGoalsUpdated(response)
         return response
