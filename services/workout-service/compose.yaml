@@ -1,0 +1,40 @@
+﻿services:
+  workout-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    volumes:
+      - workout_data:/var/opt/mssql
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD}\" -Q \"SELECT 1\" -C || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - backend-net
+    ports:
+      - "1433:1433"
+
+  workout-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+      - ../../infrastructure/rabbitmq/.env
+    depends_on:
+      workout-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://0.0.0.0:8080/healthz" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+
+volumes:
+  workout_data:
