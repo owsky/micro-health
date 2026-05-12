@@ -17,29 +17,8 @@
         bearerFormat: "JWT",
       }
 
-      const KEYCLOAK_TOKEN_URL = "http://localhost/auth/token"
-      const SCALAR_AUTH_KEYS = [
-        "scalar-reference-auth-user-service",
-        "scalar-reference-auth-workout-service",
-      ]
-
-      function setScalarToken(token) {
-        const value = JSON.stringify({
-          secrets: {
-            bearerAuth: {
-              type: "http",
-              "x-scalar-secret-token": token,
-              "x-scalar-secret-username": "",
-              "x-scalar-secret-password": "",
-            },
-          },
-          selected: {},
-        })
-        SCALAR_AUTH_KEYS.forEach(key => localStorage.setItem(key, value))
-      }
-
-      async function refreshToken() {
-        const res = await fetch(KEYCLOAK_TOKEN_URL, {
+      async function fetchToken() {
+        const res = await fetch("http://localhost/auth/token", {
           method: "POST",
           body: new URLSearchParams({
             grant_type: "password",
@@ -50,7 +29,16 @@
           }),
         })
         const data = await res.json()
-        setScalarToken(data.access_token)
+        return data.access_token
+      }
+
+      function buildAuthConfig(token) {
+        return {
+          preferredSecurityScheme: "bearerAuth",
+          securitySchemes: {
+            bearerAuth: { token },
+          },
+        }
       }
 
       function injectSecurity(spec) {
@@ -67,9 +55,9 @@
         fetch("http://localhost/api/workout-service/openapi.json").then(r =>
           r.json(),
         ),
-        refreshToken(),
-      ]).then(([userSpec, workoutSpec]) => {
-        Scalar.createApiReference("#app", [
+        fetchToken(),
+      ]).then(([userSpec, workoutSpec, token]) => {
+        const app = Scalar.createApiReference("#app", [
           {
             sources: [
               { content: injectSecurity(userSpec), title: "User Service" },
@@ -80,8 +68,7 @@
                 description: "Gateway",
               },
             ],
-            authentication: { preferredSecurityScheme: "bearerAuth" },
-            persistAuth: true,
+            authentication: buildAuthConfig(token),
           },
           {
             sources: [
@@ -96,12 +83,21 @@
                 description: "Gateway",
               },
             ],
-            authentication: { preferredSecurityScheme: "bearerAuth" },
-            persistAuth: true,
+            authentication: buildAuthConfig(token),
           },
         ])
 
-        setInterval(refreshToken, 2 * 60 * 1000)
+        setInterval(
+          async () => {
+            const newToken = await fetchToken()
+            const auth = buildAuthConfig(newToken)
+            app.updateConfiguration([
+              { authentication: auth },
+              { authentication: auth },
+            ])
+          },
+          2 * 60 * 1000,
+        )
       })
     </script>
   </body>
