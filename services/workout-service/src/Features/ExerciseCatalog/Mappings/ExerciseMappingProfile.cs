@@ -8,6 +8,10 @@ public class ExerciseMappingProfile : Profile
 {
   public ExerciseMappingProfile()
   {
-    CreateMap<Exercise, ExerciseResponse>().ReverseMap();
+    CreateMap<Exercise, ExerciseResponse>()
+      .ForMember(
+        dest => dest.MuscleGroups,
+        opt => opt.MapFrom(src => src.ExerciseMuscleGroups.Select(x => x.MuscleGroup).ToList())
+      );
   }
 }

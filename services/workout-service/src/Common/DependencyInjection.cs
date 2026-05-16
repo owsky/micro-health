@@ -2,34 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using WorkoutService.Common.Auth;
 using WorkoutService.Features.ExerciseCatalog.Persistence;
 using WorkoutService.Features.ExerciseCatalog.Services;
+using WorkoutService.Features.WorkoutTemplates.Services;
+using WorkoutService.Infrastructure;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
-
-public static class WebApplicationExtensions
-{
-  extension(WebApplication app)
-  {
-    /// <summary>
-    /// Discovers every concrete <see cref="DbContext"/> subclass in the entry assembly
-    /// and runs pending migrations on each one, so <c>Program.cs</c>
-    /// never needs updating when new feature contexts are added.
-    /// </summary>
-    public async Task MigrateAllDbContextsAsync()
-    {
-      var dbContextTypes = typeof(Program)
-        .Assembly.GetTypes()
-        .Where(t => t is { IsClass: true, IsAbstract: false } && t.IsAssignableTo(typeof(DbContext)));
-
-      await using var scope = app.Services.CreateAsyncScope();
-      foreach (var contextType in dbContextTypes)
-      {
-        if (scope.ServiceProvider.GetService(contextType) is DbContext ctx)
-          await ctx.Database.MigrateAsync();
-      }
-    }
-  }
-}
 
 /// <summary>
 /// Extension methods for registering all Workout service dependencies
@@ -40,7 +17,7 @@ public static class WorkoutServices
   extension(WebApplicationBuilder builder)
   {
     /// <summary>
-    /// Registers infrastructure concerns: the EF Core <see cref="ExerciseCatalogDbContext"/> backed by SQL Server,
+    /// Registers infrastructure concerns: the EF Core <see cref="WorkoutServiceDbContext"/> backed by SQL Server,
     /// including synchronous and asynchronous seed data for the exercise catalog.
     /// Throws <see cref="InvalidOperationException"/> if the <c>SqlServer</c> connection string is missing.
     /// </summary>
@@ -50,11 +27,25 @@ public static class WorkoutServices
       var connectionString =
         builder.Configuration.GetConnectionString("SqlServer")
         ?? throw new InvalidOperationException("Connection string 'SqlServer' was not found.");
-      builder.Services.AddDbContext<ExerciseCatalogDbContext>(options =>
+      builder.Services.AddDbContext<WorkoutServiceDbContext>(options =>
         options
           .UseSqlServer(connectionString)
-          .UseSeeding((ctx, _) => ExerciseSeedData.Seed((ExerciseCatalogDbContext)ctx))
-          .UseAsyncSeeding(async (ctx, _, ct) => await ExerciseSeedData.SeedAsync((ExerciseCatalogDbContext)ctx, ct))
+          .UseSeeding(
+            (ctx, _) =>
+            {
+              var db = (WorkoutServiceDbContext)ctx;
+              ExerciseSeedData.Seed(db);
+              // add future feature seeders here
+            }
+          )
+          .UseAsyncSeeding(
+            async (ctx, _, ct) =>
+            {
+              var db = (WorkoutServiceDbContext)ctx;
+              await ExerciseSeedData.SeedAsync(db, ct);
+              // add future feature seeders here
+            }
+          )
       );
       return builder;
     }
@@ -93,6 +84,7 @@ public static class WorkoutServices
     public IServiceCollection AddWorkoutServices()
     {
       services.AddScoped<IExerciseService, ExerciseService>();
+      services.AddScoped<IWorkoutTemplateService, WorkoutTemplateService>();
       return services;
     }
   }

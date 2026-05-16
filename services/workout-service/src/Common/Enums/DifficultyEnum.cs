@@ -1,4 +1,4 @@
-﻿namespace WorkoutService.Features.ExerciseCatalog.Enums;
+﻿namespace WorkoutService.Common.Enums;
 
 public enum DifficultyEnum
 {

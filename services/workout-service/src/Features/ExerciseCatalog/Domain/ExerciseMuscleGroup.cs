@@ -8,5 +8,5 @@ public class ExerciseMuscleGroup
 
   public MuscleGroupEnum MuscleGroup { get; init; }
 
-  public required Exercise Exercise { get; init; }
+  public Exercise? Exercise { get; init; }
 }

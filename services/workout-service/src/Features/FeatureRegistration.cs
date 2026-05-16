@@ -1,5 +1,4 @@
-// ReSharper disable once CheckNamespace
-namespace Microsoft.AspNetCore.Routing;
+namespace WorkoutService.Features;
 
 public static class FeatureRegistration
 {
@@ -10,6 +9,7 @@ public static class FeatureRegistration
       var api = routes.MapGroup("/api");
 
       api.MapExerciseCatalogEndpoints();
+      api.MapWorkoutTemplatesEndpoints();
 
       return routes;
     }

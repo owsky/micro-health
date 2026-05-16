@@ -1,4 +1,4 @@
-using WorkoutService.Features.ExerciseCatalog.Enums;
+using WorkoutService.Common.Enums;
 
 namespace WorkoutService.Features.ExerciseCatalog.Domain;
 
@@ -12,20 +12,5 @@ public class Exercise
 
   public required DifficultyEnum Difficulty { get; set; }
 
-  // EF persists this navigation to the side table.
-  public ICollection<ExerciseMuscleGroup> MuscleGroupLinks { get; } = new List<ExerciseMuscleGroup>();
-
-  public ISet<MuscleGroupEnum> MuscleGroups
-  {
-    get => MuscleGroupLinks.Select(x => x.MuscleGroup).ToHashSet();
-    set
-    {
-      MuscleGroupLinks.Clear();
-
-      foreach (var group in value.Distinct())
-      {
-        MuscleGroupLinks.Add(new ExerciseMuscleGroup { MuscleGroup = group, Exercise = this });
-      }
-    }
-  }
+  public ICollection<ExerciseMuscleGroup> ExerciseMuscleGroups { get; set; } = new List<ExerciseMuscleGroup>();
 }

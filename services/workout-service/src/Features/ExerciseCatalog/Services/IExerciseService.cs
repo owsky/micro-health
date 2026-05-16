@@ -5,7 +5,7 @@ namespace WorkoutService.Features.ExerciseCatalog.Services;
 
 public interface IExerciseService
 {
-  public Task<List<ExerciseResponse>> GetAllExercises(int pageSize, int pageNumber);
+  public Task<List<ExerciseResponse>> GetAllExercises(int pageSize, int pageNumber, bool mine, UserInfo userInfo);
 
   public Task<ExerciseResponse?> GetExerciseById(long id);
 

@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WorkoutService.Common.Enums;
 using WorkoutService.Features.ExerciseCatalog.Domain;
 using WorkoutService.Features.ExerciseCatalog.Enums;
+using WorkoutService.Infrastructure;
 
 namespace WorkoutService.Features.ExerciseCatalog.Persistence;
 
@@ -8,7 +10,7 @@ public static class ExerciseSeedData
 {
   private const string System = "system";
 
-  public static readonly IReadOnlyList<(
+  private static readonly IReadOnlyList<(
     string Name,
     DifficultyEnum Difficulty,
     MuscleGroupEnum[] MuscleGroups
@@ -121,7 +123,7 @@ public static class ExerciseSeedData
     ),
   ];
 
-  public static void Seed(ExerciseCatalogDbContext context)
+  public static void Seed(WorkoutServiceDbContext context)
   {
     var existingNames = context.Exercises.Where(e => e.Creator == System).Select(e => e.Name).ToHashSet();
     var toAdd = BuildExercises(existingNames);
@@ -131,7 +133,7 @@ public static class ExerciseSeedData
     context.SaveChanges();
   }
 
-  public static async Task SeedAsync(ExerciseCatalogDbContext context, CancellationToken ct = default)
+  public static async Task SeedAsync(WorkoutServiceDbContext context, CancellationToken ct = default)
   {
     var existingNames = (
       await context.Exercises.Where(e => e.Creator == System).Select(e => e.Name).ToListAsync(ct)
@@ -154,7 +156,8 @@ public static class ExerciseSeedData
           Name = e.Name,
           Difficulty = e.Difficulty,
         };
-        exercise.MuscleGroups = e.MuscleGroups.ToHashSet();
+        foreach (var group in e.MuscleGroups.Distinct())
+          exercise.ExerciseMuscleGroups.Add(new ExerciseMuscleGroup { MuscleGroup = group, Exercise = exercise });
         return exercise;
       })
       .ToList();

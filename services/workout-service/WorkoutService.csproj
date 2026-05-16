@@ -22,6 +22,5 @@
     <Folder Include="Migrations\" />
     <Folder Include="src\Features\History\" />
     <Folder Include="src\Features\RecordedWorkouts\" />
-    <Folder Include="src\Features\WorkoutTemplates\" />
   </ItemGroup>
 </Project>

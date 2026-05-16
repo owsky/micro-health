@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using WorkoutService.Common.Enums;
 using WorkoutService.Features.ExerciseCatalog.Enums;
 
 namespace WorkoutService.Features.ExerciseCatalog.Dtos;
@@ -16,5 +17,5 @@ public class UpdateExerciseRequest
 
   [Required]
   [MinLength(1)]
-  public required ISet<MuscleGroupEnum> MuscleGroups { get; init; }
+  public required IList<MuscleGroupEnum> MuscleGroups { get; init; }
 }

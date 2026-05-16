@@ -15,10 +15,8 @@ public sealed class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
     builder.Property(x => x.Difficulty).HasConversion<string>().IsRequired();
     builder.Property(x => x.Creator).IsRequired();
 
-    builder.Ignore(x => x.MuscleGroups);
-
     builder
-      .HasMany(x => x.MuscleGroupLinks)
+      .HasMany(x => x.ExerciseMuscleGroups)
       .WithOne(x => x.Exercise)
       .HasForeignKey(x => x.ExerciseId)
       .OnDelete(DeleteBehavior.Cascade);

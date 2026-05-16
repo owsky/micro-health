@@ -8,9 +8,12 @@ public sealed class ExerciseMuscleGroupConfiguration : IEntityTypeConfiguration<
 {
   public void Configure(EntityTypeBuilder<ExerciseMuscleGroup> builder)
   {
-    builder.ToTable("ExercisesMuscleGroup");
+    builder.ToTable("ExerciseMuscleGroups");
+
     builder.HasKey(x => new { x.ExerciseId, x.MuscleGroup });
+
     builder.Property(x => x.MuscleGroup).HasConversion<string>();
+
     builder.HasIndex(x => x.MuscleGroup);
   }
 }

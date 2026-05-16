@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
+using WorkoutService.Common.Auth;
 using WorkoutService.Features.ExerciseCatalog.Dtos;
 using WorkoutService.Features.ExerciseCatalog.Services;
 
@@ -15,11 +16,13 @@ public static class GetAllExercises
           "",
           async Task<Ok<List<ExerciseResponse>>> (
             IExerciseService exerciseService,
+            UserInfo userInfo,
             int pageSize = 15,
-            int pageNumber = 1
+            int pageNumber = 1,
+            bool mine = false
           ) =>
           {
-            var exercises = await exerciseService.GetAllExercises(pageSize, pageNumber);
+            var exercises = await exerciseService.GetAllExercises(pageSize, pageNumber, mine, userInfo);
             return TypedResults.Ok(exercises);
           }
         )

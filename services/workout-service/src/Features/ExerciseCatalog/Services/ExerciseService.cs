@@ -1,19 +1,21 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using WorkoutService.Common.Auth;
+using WorkoutService.Common.Exceptions;
 using WorkoutService.Features.ExerciseCatalog.Domain;
 using WorkoutService.Features.ExerciseCatalog.Dtos;
-using WorkoutService.Features.ExerciseCatalog.Persistence;
+using WorkoutService.Infrastructure;
 
 namespace WorkoutService.Features.ExerciseCatalog.Services;
 
-public class ExerciseService(ExerciseCatalogDbContext context, IMapper mapper) : IExerciseService
+public class ExerciseService(WorkoutServiceDbContext context, IMapper mapper) : IExerciseService
 {
-  public Task<List<ExerciseResponse>> GetAllExercises(int pageSize, int pageNumber)
+  public Task<List<ExerciseResponse>> GetAllExercises(int pageSize, int pageNumber, bool mine, UserInfo userInfo)
   {
     return context
       .Exercises.AsNoTracking()
-      .Include(e => e.MuscleGroupLinks)
+      .Include(e => e.ExerciseMuscleGroups)
+      .Where(e => !mine || e.Creator == userInfo.Username)
       .OrderBy(e => e.Id)
       .Skip((pageNumber - 1) * pageSize)
       .Take(pageSize)
@@ -25,7 +27,7 @@ public class ExerciseService(ExerciseCatalogDbContext context, IMapper mapper) :
   {
     var entity = await context
       .Exercises.AsNoTracking()
-      .Include(e => e.MuscleGroupLinks)
+      .Include(e => e.ExerciseMuscleGroups)
       .FirstOrDefaultAsync(e => e.Id == id);
     if (entity is not null)
       return mapper.Map<ExerciseResponse>(entity);
@@ -39,8 +41,9 @@ public class ExerciseService(ExerciseCatalogDbContext context, IMapper mapper) :
       Creator = userInfo.Username,
       Name = request.Name,
       Difficulty = request.Difficulty,
-      MuscleGroups = request.MuscleGroups,
     };
+    foreach (var group in request.MuscleGroups.Distinct())
+      toBeSaved.ExerciseMuscleGroups.Add(new ExerciseMuscleGroup { MuscleGroup = group, Exercise = toBeSaved });
     var saved = context.Exercises.Add(toBeSaved).Entity;
     await context.SaveChangesAsync();
     return mapper.Map<ExerciseResponse>(saved);
@@ -48,14 +51,16 @@ public class ExerciseService(ExerciseCatalogDbContext context, IMapper mapper) :
 
   public async Task UpdateExerciseById(long id, UpdateExerciseRequest request, UserInfo userInfo)
   {
-    var entity = await context.Exercises.Include(e => e.MuscleGroupLinks).FirstOrDefaultAsync(e => e.Id == id);
+    var entity = await context.Exercises.Include(e => e.ExerciseMuscleGroups).FirstOrDefaultAsync(e => e.Id == id);
     if (entity is null)
-      throw new Exception($"Entity with ID {id} not found");
+      throw new NotFoundException($"Exercise with ID {id} not found");
     if (entity.Creator != userInfo.Username)
-      throw new Exception("User does not own the exercise");
+      throw new ForbiddenException("User does not own the exercise");
     entity.Name = request.Name;
     entity.Difficulty = request.Difficulty;
-    entity.MuscleGroups = request.MuscleGroups;
+    entity.ExerciseMuscleGroups.Clear();
+    foreach (var group in request.MuscleGroups.Distinct())
+      entity.ExerciseMuscleGroups.Add(new ExerciseMuscleGroup { MuscleGroup = group, Exercise = entity });
     await context.SaveChangesAsync();
   }
 
@@ -65,7 +70,7 @@ public class ExerciseService(ExerciseCatalogDbContext context, IMapper mapper) :
     if (entity is not null)
     {
       if (entity.Creator != userInfo.Username)
-        throw new Exception("User does not own the exercise");
+        throw new ForbiddenException("User does not own the exercise");
       context.Exercises.Remove(entity);
       await context.SaveChangesAsync();
     }
