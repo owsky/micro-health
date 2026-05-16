@@ -9,14 +9,13 @@ using WorkoutService.Infrastructure;
 
 namespace WorkoutService.Features.WorkoutTemplates.Services;
 
-public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext, WorkoutTemplateMapper mapper)
-  : IWorkoutTemplatesService
+public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext) : IWorkoutTemplatesService
 {
   public async Task<WorkoutTemplateResponse?> GetWorkoutTemplateById(long id)
   {
     var template = await dbContext.WorkoutTemplates.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
     if (template is not null)
-      return mapper.ToResponse(template);
+      return WorkoutTemplateMapper.ToResponse(template);
     return null;
   }
 
@@ -27,7 +26,7 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext, WorkoutT
       .OrderBy(e => e.Id)
       .Skip((pageNumber - 1) * pageSize)
       .Take(pageSize)
-      .Select(e => mapper.ToResponse(e))
+      .Select(e => WorkoutTemplateMapper.ToResponse(e))
       .ToListAsync();
   }
 
@@ -47,7 +46,7 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext, WorkoutT
     dbContext.WorkoutTemplates.Add(toBeSaved);
     await dbContext.SaveChangesAsync();
 
-    return mapper.ToResponse(toBeSaved);
+    return WorkoutTemplateMapper.ToResponse(toBeSaved);
   }
 
   public async Task UpdateWorkoutTemplate(UpdateWorkoutTemplateRequest request, UserInfo userInfo)

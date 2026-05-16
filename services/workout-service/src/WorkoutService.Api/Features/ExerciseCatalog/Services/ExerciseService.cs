@@ -8,7 +8,7 @@ using WorkoutService.Infrastructure;
 
 namespace WorkoutService.Features.ExerciseCatalog.Services;
 
-public class ExerciseService(WorkoutServiceDbContext context, ExerciseMapper mapper) : IExerciseService
+public class ExerciseService(WorkoutServiceDbContext context) : IExerciseService
 {
   public Task<List<ExerciseResponse>> GetAllExercises(int pageSize, int pageNumber, bool mine, UserInfo userInfo)
   {
@@ -19,7 +19,7 @@ public class ExerciseService(WorkoutServiceDbContext context, ExerciseMapper map
       .OrderBy(e => e.Id)
       .Skip((pageNumber - 1) * pageSize)
       .Take(pageSize)
-      .Select(e => mapper.ToResponse(e))
+      .Select(e => ExerciseMapper.ToResponse(e))
       .ToListAsync();
   }
 
@@ -30,7 +30,7 @@ public class ExerciseService(WorkoutServiceDbContext context, ExerciseMapper map
       .Include(e => e.ExerciseMuscleGroups)
       .FirstOrDefaultAsync(e => e.Id == id);
     if (entity is not null)
-      return mapper.ToResponse(entity);
+      return ExerciseMapper.ToResponse(entity);
     return null;
   }
 
@@ -46,7 +46,7 @@ public class ExerciseService(WorkoutServiceDbContext context, ExerciseMapper map
       toBeSaved.ExerciseMuscleGroups.Add(new ExerciseMuscleGroup { MuscleGroup = group, Exercise = toBeSaved });
     var saved = context.Exercises.Add(toBeSaved).Entity;
     await context.SaveChangesAsync();
-    return mapper.ToResponse(saved);
+    return ExerciseMapper.ToResponse(saved);
   }
 
   public async Task UpdateExerciseById(long id, UpdateExerciseRequest request, UserInfo userInfo)

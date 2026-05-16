@@ -5,7 +5,6 @@ using Scalar.AspNetCore;
 using WorkoutService.Common.Auth;
 using WorkoutService.Common.Exceptions;
 using WorkoutService.Common.Logging;
-using WorkoutService.Features;
 using WorkoutService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +19,6 @@ builder.Services.Configure<JsonOptions>(options =>
   options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter())
 );
 builder.Services.AddWorkoutAuth();
-builder.Services.AddWorkoutMappings();
 builder.Services.AddWorkoutServices();
 builder.Services.AddHealthChecks();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

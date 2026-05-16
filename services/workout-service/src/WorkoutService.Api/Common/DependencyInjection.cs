@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using WorkoutService.Common.Abstractions;
 using WorkoutService.Common.Auth;
-using WorkoutService.Common.Interfaces;
 using WorkoutService.Features.ExerciseCatalog.Persistence;
 using WorkoutService.Features.ExerciseCatalog.Services;
 using WorkoutService.Features.WorkoutTemplates.Services;
@@ -69,25 +69,6 @@ public static class WorkoutServices
 
   extension(IServiceCollection services)
   {
-    /// <summary>
-    /// Scans the entry assembly for Mapperly mapper classes and registers them as singletons.
-    /// </summary>
-    /// <returns>The same <see cref="IServiceCollection"/> for chaining.</returns>
-    public IServiceCollection AddWorkoutMappings()
-    {
-      var mapperTypes = typeof(Program)
-        .Assembly.GetExportedTypes()
-        .Where(t =>
-          t is { IsClass: true, IsAbstract: false }
-          && t.GetCustomAttributes(typeof(Riok.Mapperly.Abstractions.MapperAttribute), false).Length > 0
-        );
-
-      foreach (var type in mapperTypes)
-        services.AddSingleton(type);
-
-      return services;
-    }
-
     /// <summary>
     /// Registers authentication-related services: <see cref="IHttpContextAccessor"/>,
     /// <see cref="UserInfo"/> for reading the current user's claims,
