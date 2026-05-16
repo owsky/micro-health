@@ -1,5 +1,4 @@
-﻿using WorkoutService.Common.Interfaces;
-using WorkoutService.Common.Utils;
+﻿using WorkoutService.Common.Abstractions;
 
 namespace WorkoutService.Features.ExerciseCatalog.Endpoints;
 

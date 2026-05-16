@@ -1,4 +1,4 @@
-﻿namespace WorkoutService.Common.Interfaces;
+﻿namespace WorkoutService.Common.Abstractions;
 
 public interface IEndpoint
 {

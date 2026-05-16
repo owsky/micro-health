@@ -1,4 +1,4 @@
-﻿namespace WorkoutService.Common.Utils;
+﻿namespace WorkoutService.Common.Abstractions;
 
 public abstract class EndpointBase
 {
