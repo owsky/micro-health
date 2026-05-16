@@ -4,27 +4,22 @@ using WorkoutService.Features.WorkoutTemplates.Services;
 
 namespace WorkoutService.Features.WorkoutTemplates.Endpoints;
 
-public static class GetWorkoutTemplateById
+public class GetWorkoutTemplateById : WorkoutTemplatesEndpointBase
 {
-  extension(RouteGroupBuilder group)
+  protected override void Map(RouteGroupBuilder group)
   {
-    public RouteGroupBuilder MapGetWorkoutTemplateById()
-    {
-      group
-        .MapGet(
-          "{id:long}",
-          async Task<Results<Ok<WorkoutTemplateResponse>, NotFound>> (long id, IWorkoutTemplatesService service) =>
-          {
-            var template = await service.GetWorkoutTemplateById(id);
-            if (template == null)
-              return TypedResults.NotFound();
-            return TypedResults.Ok(template);
-          }
-        )
-        .WithName("GetWorkoutTemplateById")
-        .WithSummary("Get the workout template by ID");
-
-      return group;
-    }
+    group
+      .MapGet(
+        "{id:long}",
+        async Task<Results<Ok<WorkoutTemplateResponse>, NotFound>> (long id, IWorkoutTemplatesService service) =>
+        {
+          var template = await service.GetWorkoutTemplateById(id);
+          if (template == null)
+            return TypedResults.NotFound();
+          return TypedResults.Ok(template);
+        }
+      )
+      .WithName("GetWorkoutTemplateById")
+      .WithSummary("Get the workout template by ID");
   }
 }

@@ -5,30 +5,25 @@ using WorkoutService.Features.WorkoutTemplates.Services;
 
 namespace WorkoutService.Features.WorkoutTemplates.Endpoints;
 
-public static class UpdateWorkoutTemplate
+public class UpdateWorkoutTemplate : WorkoutTemplatesEndpointBase
 {
-  extension(RouteGroupBuilder group)
+  protected override void Map(RouteGroupBuilder group)
   {
-    public RouteGroupBuilder MapUpdateWorkoutTemplate()
-    {
-      group
-        .MapPut(
-          "{id:long}",
-          async Task<NoContent> (
-            long id,
-            UpdateWorkoutTemplateRequest request,
-            UserInfo userInfo,
-            IWorkoutTemplatesService service
-          ) =>
-          {
-            await service.UpdateWorkoutTemplate(request, userInfo);
-            return TypedResults.NoContent();
-          }
-        )
-        .WithName("UpdateWorkoutTemplate")
-        .WithSummary("Update the new workout template by ID");
-
-      return group;
-    }
+    group
+      .MapPut(
+        "{id:long}",
+        async Task<NoContent> (
+          long id,
+          UpdateWorkoutTemplateRequest request,
+          UserInfo userInfo,
+          IWorkoutTemplatesService service
+        ) =>
+        {
+          await service.UpdateWorkoutTemplate(request, userInfo);
+          return TypedResults.NoContent();
+        }
+      )
+      .WithName("UpdateWorkoutTemplate")
+      .WithSummary("Update the new workout template by ID");
   }
 }

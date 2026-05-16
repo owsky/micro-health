@@ -5,31 +5,26 @@ using WorkoutService.Features.ExerciseCatalog.Services;
 
 namespace WorkoutService.Features.ExerciseCatalog.Endpoints;
 
-public static class CreateExercise
+public class CreateExercise : ExerciseCatalogEndpointBase
 {
-  extension(RouteGroupBuilder group)
+  protected override void Map(RouteGroupBuilder group)
   {
-    public RouteGroupBuilder MapCreateExercise()
-    {
-      group
-        .MapPost(
-          "",
-          async Task<Created<ExerciseResponse>> (
-            CreateExerciseRequest request,
-            UserInfo userInfo,
-            IExerciseService service,
-            LinkGenerator linkGenerator
-          ) =>
-          {
-            var created = await service.CreateExercise(request, userInfo);
-            var uri = linkGenerator.GetPathByName("GetExerciseById", new { id = created.Id });
-            return TypedResults.Created(uri, created);
-          }
-        )
-        .WithName("CreateExercise")
-        .WithSummary("Create a new exercise");
-
-      return group;
-    }
+    group
+      .MapPost(
+        "",
+        async Task<Created<ExerciseResponse>> (
+          CreateExerciseRequest request,
+          UserInfo userInfo,
+          IExerciseService service,
+          LinkGenerator linkGenerator
+        ) =>
+        {
+          var created = await service.CreateExercise(request, userInfo);
+          var uri = linkGenerator.GetPathByName("GetExerciseById", new { id = created.Id });
+          return TypedResults.Created(uri, created);
+        }
+      )
+      .WithName("CreateExercise")
+      .WithSummary("Create a new exercise");
   }
 }

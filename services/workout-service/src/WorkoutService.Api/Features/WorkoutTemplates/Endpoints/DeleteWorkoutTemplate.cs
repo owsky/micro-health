@@ -4,25 +4,20 @@ using WorkoutService.Features.WorkoutTemplates.Services;
 
 namespace WorkoutService.Features.WorkoutTemplates.Endpoints;
 
-public static class DeleteWorkoutTemplate
+public class DeleteWorkoutTemplate : WorkoutTemplatesEndpointBase
 {
-  extension(RouteGroupBuilder group)
+  protected override void Map(RouteGroupBuilder group)
   {
-    public RouteGroupBuilder MapDeleteWorkoutTemplate()
-    {
-      group
-        .MapDelete(
-          "{id:long}",
-          async Task<NoContent> (long id, UserInfo userInfo, IWorkoutTemplatesService service) =>
-          {
-            await service.DeleteWorkoutTemplateById(id, userInfo);
-            return TypedResults.NoContent();
-          }
-        )
-        .WithName("DeleteWorkoutTemplate")
-        .WithSummary("Delete the workout template by ID");
-
-      return group;
-    }
+    group
+      .MapDelete(
+        "{id:long}",
+        async Task<NoContent> (long id, UserInfo userInfo, IWorkoutTemplatesService service) =>
+        {
+          await service.DeleteWorkoutTemplateById(id, userInfo);
+          return TypedResults.NoContent();
+        }
+      )
+      .WithName("DeleteWorkoutTemplate")
+      .WithSummary("Delete the workout template by ID");
   }
 }

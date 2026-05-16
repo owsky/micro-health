@@ -4,25 +4,20 @@ using WorkoutService.Features.ExerciseCatalog.Services;
 
 namespace WorkoutService.Features.ExerciseCatalog.Endpoints;
 
-public static class DeleteExercise
+public class DeleteExercise : ExerciseCatalogEndpointBase
 {
-  extension(RouteGroupBuilder group)
+  protected override void Map(RouteGroupBuilder group)
   {
-    public RouteGroupBuilder MapDeleteExercise()
-    {
-      group
-        .MapDelete(
-          "{id:long}",
-          async Task<NoContent> (long id, IExerciseService service, UserInfo userInfo) =>
-          {
-            await service.DeleteExerciseById(id, userInfo);
-            return TypedResults.NoContent();
-          }
-        )
-        .WithName("DeleteExercise")
-        .WithSummary("Delete an exercise by ID");
-
-      return group;
-    }
+    group
+      .MapDelete(
+        "{id:long}",
+        async Task<NoContent> (long id, IExerciseService service, UserInfo userInfo) =>
+        {
+          await service.DeleteExerciseById(id, userInfo);
+          return TypedResults.NoContent();
+        }
+      )
+      .WithName("DeleteExercise")
+      .WithSummary("Delete an exercise by ID");
   }
 }

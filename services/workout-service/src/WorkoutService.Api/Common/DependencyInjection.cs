@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WorkoutService.Common.Auth;
+using WorkoutService.Common.Interfaces;
 using WorkoutService.Features.ExerciseCatalog.Persistence;
 using WorkoutService.Features.ExerciseCatalog.Services;
 using WorkoutService.Features.WorkoutTemplates.Services;
@@ -51,6 +52,21 @@ public static class WorkoutServices
     }
   }
 
+  extension(WebApplication app)
+  {
+    public WebApplication MapEndpoints()
+    {
+      var endpoints = app.Services.GetRequiredService<IEnumerable<IEndpoint>>();
+
+      var builder = app.MapGroup("/api");
+
+      foreach (var endpoint in endpoints)
+        endpoint.MapEndpoint(builder);
+
+      return app;
+    }
+  }
+
   extension(IServiceCollection services)
   {
     /// <summary>
@@ -85,6 +101,18 @@ public static class WorkoutServices
     {
       services.AddScoped<IExerciseService, ExerciseService>();
       services.AddScoped<IWorkoutTemplatesService, WorkoutTemplatesService>();
+      return services;
+    }
+
+    public IServiceCollection AddEndpoints()
+    {
+      var endpointTypes = typeof(Program)
+        .Assembly.GetExportedTypes()
+        .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IEndpoint).IsAssignableFrom(t));
+
+      foreach (var type in endpointTypes)
+        services.AddTransient(typeof(IEndpoint), type);
+
       return services;
     }
   }

@@ -25,6 +25,7 @@ builder.Services.AddWorkoutServices();
 builder.Services.AddHealthChecks();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddEndpoints();
 
 var app = builder.Build();
 
@@ -45,6 +46,6 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<UserInfoMiddleware>();
 app.MapHealthChecks("/healthz");
 app.UseHttpsRedirection();
-app.MapFeatureEndpoints();
+app.MapEndpoints();
 
 app.Run();

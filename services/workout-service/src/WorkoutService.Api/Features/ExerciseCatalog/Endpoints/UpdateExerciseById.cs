@@ -5,25 +5,20 @@ using WorkoutService.Features.ExerciseCatalog.Services;
 
 namespace WorkoutService.Features.ExerciseCatalog.Endpoints;
 
-public static class UpdateExerciseById
+public class UpdateExerciseById : ExerciseCatalogEndpointBase
 {
-  extension(RouteGroupBuilder group)
+  protected override void Map(RouteGroupBuilder group)
   {
-    public RouteGroupBuilder MapUpdateExerciseById()
-    {
-      group
-        .MapPut(
-          "{id:long}",
-          async Task<NoContent> (long id, UpdateExerciseRequest request, IExerciseService service, UserInfo userInfo) =>
-          {
-            await service.UpdateExerciseById(id, request, userInfo);
-            return TypedResults.NoContent();
-          }
-        )
-        .WithName("UpdateExerciseById")
-        .WithSummary("Update the exercise by ID");
-
-      return group;
-    }
+    group
+      .MapPut(
+        "{id:long}",
+        async Task<NoContent> (long id, UpdateExerciseRequest request, IExerciseService service, UserInfo userInfo) =>
+        {
+          await service.UpdateExerciseById(id, request, userInfo);
+          return TypedResults.NoContent();
+        }
+      )
+      .WithName("UpdateExerciseById")
+      .WithSummary("Update the exercise by ID");
   }
 }
