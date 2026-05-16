@@ -5,16 +5,14 @@ namespace WorkoutService.Features.ExerciseCatalog.Dtos;
 
 public class CreateExerciseRequest
 {
-  [Required]
   [MinLength(1)]
   [MaxLength(30)]
   public required string Name { get; init; }
 
-  [Required]
-  [EnumDataType(typeof(Difficulty))]
   public required Difficulty Difficulty { get; init; }
 
-  [Required]
+  public required TrackingType TrackingType { get; init; }
+
   [MinLength(1)]
   public required IList<MuscleGroup> MuscleGroups { get; init; }
 }

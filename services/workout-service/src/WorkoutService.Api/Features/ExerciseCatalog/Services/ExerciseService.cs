@@ -31,7 +31,7 @@ public class ExerciseService(WorkoutServiceDbContext context) : IExerciseService
       .FirstOrDefaultAsync(e => e.Id == id);
     if (entity is not null)
       return ExerciseMapper.ToResponse(entity);
-    return null;
+    throw new NotFoundException($"Exercise with ID {id} not found");
   }
 
   public async Task<ExerciseResponse> CreateExercise(CreateExerciseRequest request, UserInfo userInfo)
@@ -41,6 +41,7 @@ public class ExerciseService(WorkoutServiceDbContext context) : IExerciseService
       Creator = userInfo.Username,
       Name = request.Name,
       Difficulty = request.Difficulty,
+      TrackingType = request.TrackingType,
     };
     foreach (var group in request.MuscleGroups.Distinct())
       toBeSaved.ExerciseMuscleGroups.Add(new ExerciseMuscleGroup { MuscleGroup = group, Exercise = toBeSaved });

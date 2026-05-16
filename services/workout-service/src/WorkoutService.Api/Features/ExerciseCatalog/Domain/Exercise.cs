@@ -12,5 +12,7 @@ public class Exercise
 
   public required Difficulty Difficulty { get; set; }
 
+  public required TrackingType TrackingType { get; set; }
+
   public ICollection<ExerciseMuscleGroup> ExerciseMuscleGroups { get; set; } = new List<ExerciseMuscleGroup>();
 }

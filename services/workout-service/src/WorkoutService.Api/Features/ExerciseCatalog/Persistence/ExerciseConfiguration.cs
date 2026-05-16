@@ -13,6 +13,7 @@ public sealed class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
 
     builder.Property(x => x.Name).HasMaxLength(30).IsRequired();
     builder.Property(x => x.Difficulty).HasConversion<string>().IsRequired();
+    builder.Property(x => x.TrackingType).HasConversion<string>().IsRequired();
     builder.Property(x => x.Creator).IsRequired();
 
     builder

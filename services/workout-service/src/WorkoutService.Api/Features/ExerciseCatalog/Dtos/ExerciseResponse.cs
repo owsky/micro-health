@@ -12,5 +12,7 @@ public class ExerciseResponse
 
   public required Difficulty Difficulty { get; init; }
 
+  public required TrackingType TrackingType { get; init; }
+
   public required IList<MuscleGroup> MuscleGroups { get; init; }
 }

@@ -3,6 +3,8 @@ using WorkoutService.Common.Abstractions;
 using WorkoutService.Common.Auth;
 using WorkoutService.Features.ExerciseCatalog.Persistence;
 using WorkoutService.Features.ExerciseCatalog.Services;
+using WorkoutService.Features.Workouts.Persistence;
+using WorkoutService.Features.WorkoutTemplates.Persistence;
 using WorkoutService.Features.WorkoutTemplates.Services;
 using WorkoutService.Infrastructure;
 
@@ -36,7 +38,8 @@ public static class WorkoutServices
             {
               var db = (WorkoutServiceDbContext)ctx;
               ExerciseSeedData.Seed(db);
-              // add future feature seeders here
+              WorkoutTemplatesSeedData.Seed(db);
+              WorkoutsSeedData.Seed(db);
             }
           )
           .UseAsyncSeeding(
@@ -44,7 +47,8 @@ public static class WorkoutServices
             {
               var db = (WorkoutServiceDbContext)ctx;
               await ExerciseSeedData.SeedAsync(db, ct);
-              // add future feature seeders here
+              await WorkoutTemplatesSeedData.SeedAsync(db, ct);
+              await WorkoutsSeedData.SeedAsync(db, ct);
             }
           )
       );

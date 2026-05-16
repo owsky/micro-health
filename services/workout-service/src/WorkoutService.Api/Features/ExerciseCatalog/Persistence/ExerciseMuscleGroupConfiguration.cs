@@ -15,5 +15,11 @@ public sealed class ExerciseMuscleGroupConfiguration : IEntityTypeConfiguration<
     builder.Property(x => x.MuscleGroup).HasConversion<string>();
 
     builder.HasIndex(x => x.MuscleGroup);
+
+    builder
+      .HasOne(x => x.Exercise)
+      .WithMany(x => x.ExerciseMuscleGroups)
+      .HasForeignKey(x => x.ExerciseId)
+      .OnDelete(DeleteBehavior.Cascade);
   }
 }
