@@ -1,14 +1,14 @@
-﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using WorkoutService.Common.Auth;
 using WorkoutService.Common.Exceptions;
 using WorkoutService.Features.ExerciseCatalog.Domain;
 using WorkoutService.Features.ExerciseCatalog.Dtos;
+using WorkoutService.Features.ExerciseCatalog.Mappings;
 using WorkoutService.Infrastructure;
 
 namespace WorkoutService.Features.ExerciseCatalog.Services;
 
-public class ExerciseService(WorkoutServiceDbContext context, IMapper mapper) : IExerciseService
+public class ExerciseService(WorkoutServiceDbContext context, ExerciseMapper mapper) : IExerciseService
 {
   public Task<List<ExerciseResponse>> GetAllExercises(int pageSize, int pageNumber, bool mine, UserInfo userInfo)
   {
@@ -19,7 +19,7 @@ public class ExerciseService(WorkoutServiceDbContext context, IMapper mapper) : 
       .OrderBy(e => e.Id)
       .Skip((pageNumber - 1) * pageSize)
       .Take(pageSize)
-      .Select(e => mapper.Map<ExerciseResponse>(e))
+      .Select(e => mapper.ToResponse(e))
       .ToListAsync();
   }
 
@@ -30,7 +30,7 @@ public class ExerciseService(WorkoutServiceDbContext context, IMapper mapper) : 
       .Include(e => e.ExerciseMuscleGroups)
       .FirstOrDefaultAsync(e => e.Id == id);
     if (entity is not null)
-      return mapper.Map<ExerciseResponse>(entity);
+      return mapper.ToResponse(entity);
     return null;
   }
 
@@ -46,7 +46,7 @@ public class ExerciseService(WorkoutServiceDbContext context, IMapper mapper) : 
       toBeSaved.ExerciseMuscleGroups.Add(new ExerciseMuscleGroup { MuscleGroup = group, Exercise = toBeSaved });
     var saved = context.Exercises.Add(toBeSaved).Entity;
     await context.SaveChangesAsync();
-    return mapper.Map<ExerciseResponse>(saved);
+    return mapper.ToResponse(saved);
   }
 
   public async Task UpdateExerciseById(long id, UpdateExerciseRequest request, UserInfo userInfo)

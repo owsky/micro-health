@@ -1,21 +1,22 @@
-﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using WorkoutService.Common.Auth;
 using WorkoutService.Common.Enums;
 using WorkoutService.Common.Exceptions;
 using WorkoutService.Features.WorkoutTemplates.Domain;
 using WorkoutService.Features.WorkoutTemplates.Dtos;
+using WorkoutService.Features.WorkoutTemplates.Mappings;
 using WorkoutService.Infrastructure;
 
 namespace WorkoutService.Features.WorkoutTemplates.Services;
 
-public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext, IMapper mapper) : IWorkoutTemplatesService
+public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext, WorkoutTemplateMapper mapper)
+  : IWorkoutTemplatesService
 {
   public async Task<WorkoutTemplateResponse?> GetWorkoutTemplateById(long id)
   {
     var template = await dbContext.WorkoutTemplates.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
     if (template is not null)
-      return mapper.Map<WorkoutTemplateResponse>(template);
+      return mapper.ToResponse(template);
     return null;
   }
 
@@ -26,7 +27,7 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext, IMapper 
       .OrderBy(e => e.Id)
       .Skip((pageNumber - 1) * pageSize)
       .Take(pageSize)
-      .Select(e => mapper.Map<WorkoutTemplateResponse>(e))
+      .Select(e => mapper.ToResponse(e))
       .ToListAsync();
   }
 
@@ -46,7 +47,7 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext, IMapper 
     dbContext.WorkoutTemplates.Add(toBeSaved);
     await dbContext.SaveChangesAsync();
 
-    return mapper.Map<WorkoutTemplateResponse>(toBeSaved);
+    return mapper.ToResponse(toBeSaved);
   }
 
   public async Task UpdateWorkoutTemplate(UpdateWorkoutTemplateRequest request, UserInfo userInfo)

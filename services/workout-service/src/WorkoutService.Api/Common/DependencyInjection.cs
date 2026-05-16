@@ -70,12 +70,21 @@ public static class WorkoutServices
   extension(IServiceCollection services)
   {
     /// <summary>
-    /// Registers AutoMapper and scans the entry assembly for mapping profiles.
+    /// Scans the entry assembly for Mapperly mapper classes and registers them as singletons.
     /// </summary>
     /// <returns>The same <see cref="IServiceCollection"/> for chaining.</returns>
     public IServiceCollection AddWorkoutMappings()
     {
-      services.AddAutoMapper(_ => { }, typeof(Program).Assembly);
+      var mapperTypes = typeof(Program)
+        .Assembly.GetExportedTypes()
+        .Where(t =>
+          t is { IsClass: true, IsAbstract: false }
+          && t.GetCustomAttributes(typeof(Riok.Mapperly.Abstractions.MapperAttribute), false).Length > 0
+        );
+
+      foreach (var type in mapperTypes)
+        services.AddSingleton(type);
+
       return services;
     }
 

@@ -1,17 +1,15 @@
-using AutoMapper;
+using Riok.Mapperly.Abstractions;
+using WorkoutService.Common.Enums;
 using WorkoutService.Features.ExerciseCatalog.Domain;
 using WorkoutService.Features.ExerciseCatalog.Dtos;
 
 namespace WorkoutService.Features.ExerciseCatalog.Mappings;
 
-public class ExerciseMappingProfile : Profile
+[Mapper]
+public partial class ExerciseMapper
 {
-  public ExerciseMappingProfile()
-  {
-    CreateMap<Exercise, ExerciseResponse>()
-      .ForMember(
-        dest => dest.MuscleGroups,
-        opt => opt.MapFrom(src => src.ExerciseMuscleGroups.Select(x => x.MuscleGroup).ToList())
-      );
-  }
+  [MapProperty(nameof(Exercise.ExerciseMuscleGroups), nameof(ExerciseResponse.MuscleGroups))]
+  public partial ExerciseResponse ToResponse(Exercise exercise);
+
+  private static MuscleGroup MapMuscleGroup(ExerciseMuscleGroup emg) => emg.MuscleGroup;
 }
