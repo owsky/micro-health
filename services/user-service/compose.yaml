@@ -1,6 +1,7 @@
 services:
   user-db:
     image: postgres:18.3
+    restart: unless-stopped
     volumes:
       - user_data:/var/lib/postgresql
     env_file:
@@ -23,6 +24,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     networks:
       - backend-net
     env_file:

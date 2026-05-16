@@ -4,7 +4,7 @@ include:
   - path: ./infrastructure/rabbitmq/compose.yaml
   - path: ./infrastructure/scalar/compose.yaml
   - path: ./services/user-service/compose.yaml
-  - path: ./services/workout-service/compose.yaml
+  - path: ./services/workout-service/src/WorkoutService.Api/compose.yaml
 
 networks:
   apisix-net:
