@@ -1,6 +1,8 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using WorkoutService.Common.Abstractions;
 using WorkoutService.Common.Auth;
+using WorkoutService.Common.Messaging.Consumers;
 using WorkoutService.Features.ExerciseCatalog.Persistence;
 using WorkoutService.Features.ExerciseCatalog.Services;
 using WorkoutService.Features.Workouts.Services;
@@ -19,6 +21,55 @@ public static class WorkoutServices
 {
   extension(WebApplicationBuilder builder)
   {
+    /// <summary>
+    /// Registers MassTransit with RabbitMQ transport.
+    /// Reads <c>RABBITMQ_HOST</c>, <c>RABBITMQ_PORT</c>, <c>RABBITMQ_DEFAULT_USER</c>,
+    /// and <c>RABBITMQ_DEFAULT_PASS</c> from environment variables (or appsettings overrides in Development).
+    /// </summary>
+    public WebApplicationBuilder AddWorkoutMessaging()
+    {
+      builder.Services.AddMassTransit(x =>
+      {
+        x.SetKebabCaseEndpointNameFormatter();
+        x.AddConsumer<UserDeletedConsumer>();
+
+        x.UsingRabbitMq(
+          (context, cfg) =>
+          {
+            var config = builder.Configuration;
+            var host =
+              config["RABBITMQ_HOST"]
+              ?? throw new InvalidOperationException("RABBITMQ_HOST environment variable is not set.");
+            var port = ushort.Parse(
+              config["RABBITMQ_PORT"]
+                ?? throw new InvalidOperationException("RABBITMQ_PORT environment variable is not set.")
+            );
+            var username =
+              config["RABBITMQ_DEFAULT_USER"]
+              ?? throw new InvalidOperationException("RABBITMQ_DEFAULT_USER environment variable is not set.");
+            var password =
+              config["RABBITMQ_DEFAULT_PASS"]
+              ?? throw new InvalidOperationException("RABBITMQ_DEFAULT_PASS environment variable is not set.");
+
+            cfg.Host(
+              host,
+              port,
+              "/",
+              h =>
+              {
+                h.Username(username);
+                h.Password(password);
+              }
+            );
+
+            cfg.ConfigureEndpoints(context);
+          }
+        );
+      });
+
+      return builder;
+    }
+
     /// <summary>
     /// Registers infrastructure concerns: the EF Core <see cref="WorkoutServiceDbContext"/> backed by SQL Server,
     /// including synchronous and asynchronous seed data for the exercise catalog.

@@ -10,6 +10,7 @@ using WorkoutService.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddWorkoutInfrastructure();
+builder.AddWorkoutMessaging();
 builder.Services.AddOpenApi();
 builder.Services.AddValidation();
 builder.Services.ConfigureHttpJsonOptions(options =>
