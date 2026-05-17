@@ -43,7 +43,6 @@ app.UseExceptionHandler();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<UserInfoMiddleware>();
 app.MapHealthChecks("/healthz");
-app.UseHttpsRedirection();
 app.MapEndpoints();
 
 app.Run();
