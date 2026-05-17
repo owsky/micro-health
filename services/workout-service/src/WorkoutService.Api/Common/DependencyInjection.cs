@@ -3,7 +3,7 @@ using WorkoutService.Common.Abstractions;
 using WorkoutService.Common.Auth;
 using WorkoutService.Features.ExerciseCatalog.Persistence;
 using WorkoutService.Features.ExerciseCatalog.Services;
-using WorkoutService.Features.Workouts.Persistence;
+using WorkoutService.Features.Workouts.Services;
 using WorkoutService.Features.WorkoutTemplates.Persistence;
 using WorkoutService.Features.WorkoutTemplates.Services;
 using WorkoutService.Infrastructure;
@@ -39,7 +39,6 @@ public static class WorkoutServices
               var db = (WorkoutServiceDbContext)ctx;
               ExerciseSeedData.Seed(db);
               WorkoutTemplatesSeedData.Seed(db);
-              WorkoutsSeedData.Seed(db);
             }
           )
           .UseAsyncSeeding(
@@ -48,7 +47,6 @@ public static class WorkoutServices
               var db = (WorkoutServiceDbContext)ctx;
               await ExerciseSeedData.SeedAsync(db, ct);
               await WorkoutTemplatesSeedData.SeedAsync(db, ct);
-              await WorkoutsSeedData.SeedAsync(db, ct);
             }
           )
       );
@@ -94,6 +92,7 @@ public static class WorkoutServices
     public IServiceCollection AddWorkoutServices()
     {
       services.AddScoped<IExerciseService, ExerciseService>();
+      services.AddScoped<IWorkoutsService, WorkoutsService>();
       services.AddScoped<IWorkoutTemplatesService, WorkoutTemplatesService>();
       return services;
     }

@@ -4,7 +4,7 @@ public class Workout
 {
   public long Id { get; init; }
 
-  public required string Creator { get; init; }
+  public required string Creator { get; set; }
 
   public string? Name { get; set; }
 

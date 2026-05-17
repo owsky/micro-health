@@ -20,9 +20,6 @@ public class WorkoutSetsConfiguration : IEntityTypeConfiguration<WorkoutSet>
     builder.Property(x => x.SetNumber).IsRequired();
     builder.Property(x => x.IsWarmup).IsRequired();
 
-    builder.Property<decimal>("Weight").HasPrecision(18, 2);
-    builder.Property<decimal>("Distance").HasPrecision(18, 2);
-
     builder
       .HasDiscriminator<string>("SetType")
       .HasValue<WeightAndRepsSet>("WeightReps")

@@ -156,10 +156,6 @@ namespace WorkoutService.Migrations
                     b.Property<int>("SetNumber")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Distance")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<bool>("IsWarmup")
                         .HasColumnType("bit");
 
@@ -167,10 +163,6 @@ namespace WorkoutService.Migrations
                         .IsRequired()
                         .HasMaxLength(13)
                         .HasColumnType("nvarchar(13)");
-
-                    b.Property<decimal>("Weight")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("WorkoutId", "ExerciseId", "SetNumber");
 
@@ -186,6 +178,11 @@ namespace WorkoutService.Migrations
             modelBuilder.Entity("WorkoutService.Features.Workouts.Domain.DistanceAndTimeSet", b =>
                 {
                     b.HasBaseType("WorkoutService.Features.Workouts.Domain.WorkoutSet");
+
+                    b.Property<decimal>("Distance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Distance");
 
                     b.Property<int>("DurationSeconds")
                         .HasColumnType("int");
@@ -238,6 +235,12 @@ namespace WorkoutService.Migrations
                     b.Property<int>("Reps")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("Weight")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Weight");
+
                     b.HasDiscriminator().HasValue("WeightReps");
                 });
 
@@ -247,6 +250,12 @@ namespace WorkoutService.Migrations
 
                     b.Property<int>("DurationSeconds")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("Weight")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Weight");
 
                     b.HasDiscriminator().HasValue("WeightTime");
                 });
