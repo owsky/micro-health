@@ -1,0 +1,46 @@
+{
+  "consumer": {
+    "name": "workout-service"
+  },
+  "interactions": [
+    {
+      "contents": {
+        "content": {
+          "Username": "alice"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "a user deleted event when a user account is removed",
+      "matchingRules": {
+        "body": {
+          "$.Username": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.23",
+      "models": "1.2.5"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "user-service"
+  }
+}

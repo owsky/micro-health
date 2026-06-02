@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using DotNetEnv;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -6,6 +7,8 @@ using WorkoutService.Common.Auth;
 using WorkoutService.Common.Exceptions;
 using WorkoutService.Common.Logging;
 using WorkoutService.Infrastructure;
+
+Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
