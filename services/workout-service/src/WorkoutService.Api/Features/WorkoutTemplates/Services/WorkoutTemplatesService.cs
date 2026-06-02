@@ -77,7 +77,7 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext) : IWorko
       .FirstOrDefaultAsync(t => t.Id == id);
 
     if (template == null)
-      throw new NotFoundException($"Template with ID {id} not found");
+      return;
 
     if (template.Creator != userInfo.Username)
       throw new ForbiddenException($"User {userInfo.Username} does not own template with ID {template.Id}");
