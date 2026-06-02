@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using WorkoutService.Common.Auth;
 using WorkoutService.Common.Enums;
 using WorkoutService.Common.Exceptions;
+using WorkoutService.Features.ExerciseCatalog.Domain;
 using WorkoutService.Features.WorkoutTemplates.Domain;
 using WorkoutService.Features.WorkoutTemplates.Dtos;
 using WorkoutService.Features.WorkoutTemplates.Mappings;
@@ -37,9 +38,9 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext) : IWorko
   {
     var toBeSaved = new WorkoutTemplate { Creator = userInfo.Username, Name = request.Name };
 
-    var templateExercises = await GetOrderedExercisesById(request.ExerciseIds, toBeSaved);
+    var (templateExercises, exercises) = await GetOrderedExercisesById(request.ExerciseIds, toBeSaved);
 
-    toBeSaved.OverallDifficulty = ComputeOverallDifficulty(templateExercises);
+    toBeSaved.OverallDifficulty = ComputeOverallDifficulty(exercises);
 
     toBeSaved.Exercises.AddRange(templateExercises);
 
@@ -62,8 +63,9 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext) : IWorko
       throw new ForbiddenException($"User {userInfo.Username} does not own template with ID {template.Id}");
 
     template.Name = request.Name;
-    template.Exercises = await GetOrderedExercisesById(request.Exercises, template);
-    template.OverallDifficulty = ComputeOverallDifficulty(template.Exercises);
+    var (templateExercises, exercises) = await GetOrderedExercisesById(request.Exercises, template);
+    template.Exercises = templateExercises;
+    template.OverallDifficulty = ComputeOverallDifficulty(exercises);
 
     await dbContext.SaveChangesAsync();
   }
@@ -84,24 +86,15 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext) : IWorko
     await dbContext.SaveChangesAsync();
   }
 
-  private static Difficulty ComputeOverallDifficulty(List<WorkoutTemplateExercise> workoutTemplateExercises)
+  private static Difficulty ComputeOverallDifficulty(IEnumerable<Exercise> exercises)
   {
-    return workoutTemplateExercises
-      .Select(e =>
-      {
-        if (e.Exercise is null)
-          throw new InvalidOperationException(
-            $"WorkoutTemplateExercise with exercise ID '{e.ExerciseId}' has a null back reference"
-          );
-        return e.Exercise.Difficulty;
-      })
-      .Aggregate(Difficulty.AggregateDifficulty);
+    return exercises.Select(e => e.Difficulty).Aggregate(Difficulty.AggregateDifficulty);
   }
 
-  private async Task<List<WorkoutTemplateExercise>> GetOrderedExercisesById(
-    List<long> exerciseIds,
-    WorkoutTemplate template
-  )
+  private async Task<(
+    List<WorkoutTemplateExercise> templateExercises,
+    List<Exercise> exercises
+  )> GetOrderedExercisesById(List<long> exerciseIds, WorkoutTemplate template)
   {
     var orderMap = exerciseIds.Select((id, index) => new { id, index }).ToDictionary(x => x.id, x => x.index);
 
@@ -119,13 +112,15 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext) : IWorko
       throw new ConflictException($"Requested IDs '{missingExercises}' not found");
     }
 
-    return exercises
-      .Select(exercise => new WorkoutTemplateExercise()
+    var templateExercises = exercises
+      .Select(exercise => new WorkoutTemplateExercise
       {
-        Exercise = exercise,
+        ExerciseId = exercise.Id,
         Order = orderMap[exercise.Id] + 1,
         WorkoutTemplate = template,
       })
       .ToList();
+
+    return (templateExercises, exercises);
   }
 }
