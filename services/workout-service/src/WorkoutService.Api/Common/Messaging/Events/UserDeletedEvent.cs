@@ -1,4 +1,5 @@
-﻿namespace WorkoutService.Common.Messaging.Events;
+﻿using System.Text.Json.Serialization;
 
-public record UserDeletedEvent(string Username);
+namespace WorkoutService.Common.Messaging.Events;
 
+public record UserDeletedEvent([property: JsonPropertyName("username")] string Username);

@@ -46,7 +46,7 @@ public class UserDeletedEventPactTests : IDisposable
     await pact.WithMessageInteractions()
       .ExpectsToReceive("a user deleted event when a user account is removed")
       .WithMetadata("contentType", "application/json")
-      .WithJsonContent(new { Username = Match.Type("alice") })
+      .WithJsonContent(new { username = Match.Type("alice") })
       .VerifyAsync<UserDeletedEvent>(async message =>
       {
         var ctx = Substitute.For<ConsumeContext<UserDeletedEvent>>();

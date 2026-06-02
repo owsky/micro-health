@@ -6,7 +6,7 @@
     {
       "contents": {
         "content": {
-          "Username": "alice"
+          "username": "alice"
         },
         "contentType": "application/json",
         "encoded": false
@@ -14,7 +14,7 @@
       "description": "a user deleted event when a user account is removed",
       "matchingRules": {
         "body": {
-          "$.Username": {
+          "$.username": {
             "combine": "AND",
             "matchers": [
               {
