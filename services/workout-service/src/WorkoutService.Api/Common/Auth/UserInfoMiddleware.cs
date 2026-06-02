@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using WorkoutService.Common.Exceptions;
 
 namespace WorkoutService.Common.Auth;
 
@@ -22,6 +23,8 @@ public sealed class UserInfoMiddleware(ILogger<UserInfoMiddleware> logger) : IMi
 
         if (root.TryGetProperty("preferred_username", out var username))
           claims.Add(new Claim(ClaimTypes.Name, username.GetString()!));
+        else
+          throw new ForbiddenException("Missing preferred_username field from X-Userinfo request header");
 
         context.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "Gateway"));
       }
@@ -30,6 +33,10 @@ public sealed class UserInfoMiddleware(ILogger<UserInfoMiddleware> logger) : IMi
         logger.LogCritical(ex, "Failed to parse X-Userinfo header.");
         throw;
       }
+    }
+    else
+    {
+      throw new ForbiddenException("Missing X-Userinfo request header");
     }
 
     await next(context);
