@@ -1,6 +1,7 @@
 package com.example.userservice.features.profile.messaging
 
 import com.example.userservice.config.RabbitMQConfig
+import com.example.userservice.features.profile.dto.UserDeletedEvent
 import com.example.userservice.features.profile.dto.UserProfileResponse
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
@@ -25,10 +26,10 @@ class UserProfileEventPublisher(private val rabbitTemplate: RabbitTemplate) {
         )
     }
 
-    fun publishUserDeleted(userName: String) {
-        log.info("Publishing user.deleted event for user: $userName")
+    fun publishUserDeleted(username: String) {
+        log.info("Publishing user.deleted event for user: $username")
         rabbitTemplate.convertAndSend(
-            RabbitMQConfig.EXCHANGE, RabbitMQConfig.USER_DELETED_ROUTING_KEY, userName
+            RabbitMQConfig.EXCHANGE, RabbitMQConfig.USER_DELETED_ROUTING_KEY, UserDeletedEvent(username)
         )
     }
 }

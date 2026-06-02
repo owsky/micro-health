@@ -1,6 +1,7 @@
 package com.example.userservice.features.profile.messaging
 
 import com.example.userservice.config.RabbitMQConfig
+import com.example.userservice.features.profile.dto.UserDeletedEvent
 import com.example.userservice.features.profile.dto.UserProfileResponse
 import com.example.userservice.features.profile.enums.GenderEnum
 import io.mockk.impl.annotations.InjectMockKs
@@ -139,7 +140,7 @@ class UserProfileEventPublisherTest {
                 rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE,
                     RabbitMQConfig.USER_DELETED_ROUTING_KEY,
-                    userProfileResponse.username
+                    UserDeletedEvent(userProfileResponse.username)
                 )
             }
 
@@ -151,7 +152,7 @@ class UserProfileEventPublisherTest {
                 rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE,
                     RabbitMQConfig.USER_DELETED_ROUTING_KEY,
-                    userProfileResponse.username
+                    UserDeletedEvent(userProfileResponse.username)
                 )
             }
         }
@@ -166,7 +167,7 @@ class UserProfileEventPublisherTest {
 
             // assert
             verify {
-                rabbitTemplate.convertAndSend(any<String>(), any<String>(), userProfileResponse.username)
+                rabbitTemplate.convertAndSend(any<String>(), any<String>(), UserDeletedEvent(userProfileResponse.username))
             }
         }
     }
