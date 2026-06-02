@@ -245,51 +245,38 @@ Workout templates:
 
 Recorded workouts:
 
-* create a recorded workout from a template, manual entry, or simulated device sync
+* create a recorded workout from a template
 * store performed sets with actual reps, weight, and notes
-* support draft and completed workout states
-* finalize a workout record and calculate duration and total volume
-
-History:
-
-* list recorded workouts with summary stats
-* retrieve full workout details
 
 User data lifecycle:
 
 * purge all exercises, templates, and recorded workouts for a user on account deletion
 
-#### Data model notes
-
-* the service stores workout data after it has been recorded locally or entered manually
-* live sensor streaming is out of scope for this service
-* workout records may include a source such as manual, imported, or simulated-sync
-
 ### Endpoints
 
 ```
-GET    /exercises
-POST   /exercises
+GET    /exercise-catalog
+GET    /exercise-catalog/{id}
+POST   /exercise-catalog
+PUT    /exercise-catalog/{id}
+DELETE /exercise-catalog/{id}
+GET    /workout-templates
+GET    /workout-templates/{id}
+POST   /workout-templates
+PUT    /workout-templates/{id}
+DELETE /workout-templates/{id}
 GET    /workouts
-POST   /workouts
 GET    /workouts/{id}
-POST   /recorded-workouts
-GET    /recorded-workouts/{id}
-PATCH  /recorded-workouts/{id}
-POST   /recorded-workouts/{id}/finalize
-GET    /recorded-workouts/history
+POST   /workouts
+PUT    /workouts/{id}
+DELETE /workouts/{id}
+
 ```
 
 ### Events Consumed
 
 ```
 UserDeleted
-```
-
-### Events Produced
-
-```
-WorkoutCompleted
 ```
 
 ---
