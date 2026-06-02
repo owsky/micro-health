@@ -14,21 +14,59 @@ public class WorkoutTemplatesService(WorkoutServiceDbContext dbContext) : IWorko
 {
   public async Task<WorkoutTemplateResponse?> GetWorkoutTemplateById(long id)
   {
-    var template = await dbContext.WorkoutTemplates.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+    var template = await dbContext
+      .WorkoutTemplates.AsNoTracking()
+      .Include(e => e.Exercises)
+        .ThenInclude(e => e.Exercise)
+          .ThenInclude(e => e!.ExerciseMuscleGroups)
+      .FirstOrDefaultAsync(e => e.Id == id);
     if (template is not null)
       return WorkoutTemplateMapper.ToResponse(template);
     return null;
   }
 
-  public Task<List<WorkoutTemplateResponse>> GetAllWorkoutTemplates(int pageSize, int pageNumber)
+  public async Task<List<WorkoutTemplateResponse>> GetAllWorkoutTemplates(
+    int pageSize,
+    int pageNumber,
+    UserInfo userInfo,
+    string? name = null,
+    Difficulty? overallDifficulty = null,
+    List<long>? exerciseIds = null,
+    bool mine = false
+  )
   {
-    return dbContext
-      .WorkoutTemplates.AsNoTracking()
+    var query = dbContext.WorkoutTemplates.AsNoTracking();
+
+    if (mine)
+    {
+      query = query.Where(e => e.Creator == userInfo.Username);
+    }
+
+    if (!string.IsNullOrWhiteSpace(name))
+    {
+      query = query.Where(e => e.Name.Contains(name));
+    }
+
+    if (overallDifficulty.HasValue)
+    {
+      query = query.Where(e => e.OverallDifficulty == overallDifficulty.Value);
+    }
+
+    if (exerciseIds is { Count: > 0 })
+    {
+      query = query.Where(e => e.Exercises.Any(ex => exerciseIds.Contains(ex.ExerciseId)));
+    }
+
+    var results = await query
+      .Include(e => e.Exercises)
+        .ThenInclude(ex => ex.Exercise)
+          .ThenInclude(emg => emg!.ExerciseMuscleGroups)
       .OrderBy(e => e.Id)
       .Skip((pageNumber - 1) * pageSize)
       .Take(pageSize)
-      .Select(e => WorkoutTemplateMapper.ToResponse(e))
       .ToListAsync();
+
+    return results.Select(WorkoutTemplateMapper.ToResponse).ToList();
   }
 
   public async Task<WorkoutTemplateResponse> CreateWorkoutTemplate(

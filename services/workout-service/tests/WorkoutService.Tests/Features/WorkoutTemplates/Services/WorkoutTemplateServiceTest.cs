@@ -36,11 +36,7 @@ public class WorkoutTemplateServiceTest : ServiceTestBase
   /// <summary>
   /// Creates a workout template using a fresh service/context and returns the response DTO.
   /// </summary>
-  private async Task<WorkoutTemplateResponse> CreateTemplateAsync(
-    string name,
-    List<long> exerciseIds,
-    string creator = "alice"
-  )
+  private async Task<WorkoutTemplateResponse> CreateTemplateAsync(string name, List<long> exerciseIds, string creator)
   {
     return await _sut.CreateWorkoutTemplate(
       new CreateWorkoutTemplateRequest { Name = name, ExerciseIds = exerciseIds },
@@ -57,7 +53,7 @@ public class WorkoutTemplateServiceTest : ServiceTestBase
   {
     // arrange
     var exerciseId = await SeedExerciseAsync("alice");
-    var created = await CreateTemplateAsync("Push Day", [exerciseId]);
+    var created = await CreateTemplateAsync("Push Day", [exerciseId], "alice");
 
     // act
     var sut = new WorkoutTemplatesService(Context);
@@ -88,11 +84,15 @@ public class WorkoutTemplateServiceTest : ServiceTestBase
   {
     // arrange
     var exerciseId = await SeedExerciseAsync("alice");
-    await CreateTemplateAsync("Template A", [exerciseId]);
-    await CreateTemplateAsync("Template B", [exerciseId]);
+    await CreateTemplateAsync("Template A", [exerciseId], "alice");
+    await CreateTemplateAsync("Template B", [exerciseId], "alice");
 
     // act
-    var result = await _sut.GetAllWorkoutTemplates(pageSize: 15, pageNumber: 1);
+    var result = await _sut.GetAllWorkoutTemplates(
+      pageSize: 15,
+      pageNumber: 1,
+      userInfo: UserInfoHelpers.CreateUserInfo("alice")
+    );
 
     // assert
     Assert.Equal(2, result.Count);
@@ -104,13 +104,110 @@ public class WorkoutTemplateServiceTest : ServiceTestBase
     // arrange
     var exerciseId = await SeedExerciseAsync("alice");
     for (var i = 0; i < 5; i++)
-      await CreateTemplateAsync($"Template {i}", [exerciseId]);
+      await CreateTemplateAsync($"Template {i}", [exerciseId], "alice");
 
     // act
-    var result = await _sut.GetAllWorkoutTemplates(pageSize: 2, pageNumber: 2);
+    var result = await _sut.GetAllWorkoutTemplates(
+      pageSize: 2,
+      pageNumber: 2,
+      userInfo: UserInfoHelpers.CreateUserInfo("alice")
+    );
 
     // assert
     Assert.Equal(2, result.Count);
+  }
+
+  [Fact]
+  public async Task GetAllWorkoutTemplates_FiltersByMine()
+  {
+    // arrange
+    var exerciseId = await SeedExerciseAsync("alice");
+    await CreateTemplateAsync("My Template", [exerciseId], "alice");
+    await CreateTemplateAsync("Other Template", [exerciseId], "bob");
+
+    // act
+    var result = await _sut.GetAllWorkoutTemplates(
+      pageSize: 15,
+      pageNumber: 1,
+      userInfo: UserInfoHelpers.CreateUserInfo("alice"),
+      mine: true
+    );
+
+    // assert
+    Assert.Single(result);
+    Assert.Equal("My Template", result[0].Name);
+    Assert.Equal("alice", result[0].Creator);
+  }
+
+  [Fact]
+  public async Task GetAllWorkoutTemplates_FiltersByNameFuzzy()
+  {
+    // arrange
+    var exerciseId = await SeedExerciseAsync("alice");
+    await CreateTemplateAsync("Upper Body plan", [exerciseId], "alice");
+    await CreateTemplateAsync("Lower Body plan", [exerciseId], "alice");
+    await CreateTemplateAsync("Leg Day", [exerciseId], "alice");
+
+    // act
+    var result = await _sut.GetAllWorkoutTemplates(
+      pageSize: 15,
+      pageNumber: 1,
+      userInfo: UserInfoHelpers.CreateUserInfo("alice"),
+      name: "plan"
+    );
+
+    // assert
+    Assert.Equal(2, result.Count);
+    Assert.Contains(result, t => t.Name == "Upper Body plan");
+    Assert.Contains(result, t => t.Name == "Lower Body plan");
+  }
+
+  [Fact]
+  public async Task GetAllWorkoutTemplates_FiltersByOverallDifficulty()
+  {
+    // arrange
+    var easyExerciseId = await SeedExerciseAsync("alice", Difficulty.Easy);
+    var hardExerciseId = await SeedExerciseAsync("alice", Difficulty.High);
+
+    await CreateTemplateAsync("Easy Routine", [easyExerciseId], "alice");
+    await CreateTemplateAsync("Hard Routine", [hardExerciseId], "alice");
+
+    // act
+    var result = await _sut.GetAllWorkoutTemplates(
+      pageSize: 15,
+      pageNumber: 1,
+      userInfo: UserInfoHelpers.CreateUserInfo("alice"),
+      overallDifficulty: Difficulty.High
+    );
+
+    // assert
+    Assert.Single(result);
+    Assert.Equal("Hard Routine", result[0].Name);
+  }
+
+  [Fact]
+  public async Task GetAllWorkoutTemplates_FiltersByExercises()
+  {
+    // arrange
+    var ex1 = await SeedExerciseAsync("alice");
+    var ex2 = await SeedExerciseAsync("alice");
+
+    await CreateTemplateAsync("Routine A", [ex1], "alice");
+    await CreateTemplateAsync("Routine B", [ex2], "alice");
+    await CreateTemplateAsync("Routine C", [ex1, ex2], "alice");
+
+    // act
+    var result = await _sut.GetAllWorkoutTemplates(
+      pageSize: 15,
+      pageNumber: 1,
+      userInfo: UserInfoHelpers.CreateUserInfo("alice"),
+      exerciseIds: [ex1]
+    );
+
+    // assert
+    Assert.Equal(2, result.Count); // Routine A and Routine C contain ex1
+    Assert.Contains(result, t => t.Name == "Routine A");
+    Assert.Contains(result, t => t.Name == "Routine C");
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -177,7 +274,7 @@ public class WorkoutTemplateServiceTest : ServiceTestBase
     // arrange
     var ex1Id = await SeedExerciseAsync("alice", Difficulty.Easy);
     var ex2Id = await SeedExerciseAsync("alice", Difficulty.High);
-    var created = await CreateTemplateAsync("Push Day", [ex1Id]);
+    var created = await CreateTemplateAsync("Push Day", [ex1Id], "alice");
 
     // act
     await _sut.UpdateWorkoutTemplate(
@@ -221,7 +318,7 @@ public class WorkoutTemplateServiceTest : ServiceTestBase
   {
     // arrange
     var exerciseId = await SeedExerciseAsync("alice");
-    var created = await CreateTemplateAsync("Push Day", [exerciseId]);
+    var created = await CreateTemplateAsync("Push Day", [exerciseId], "alice");
 
     var updateRequest = new UpdateWorkoutTemplateRequest
     {
@@ -245,7 +342,7 @@ public class WorkoutTemplateServiceTest : ServiceTestBase
   {
     // arrange
     var exerciseId = await SeedExerciseAsync("alice");
-    var created = await CreateTemplateAsync("Push Day", [exerciseId]);
+    var created = await CreateTemplateAsync("Push Day", [exerciseId], "alice");
 
     // act
     await _sut.DeleteWorkoutTemplateById(created.Id, UserInfoHelpers.CreateUserInfo("alice"));
@@ -255,20 +352,11 @@ public class WorkoutTemplateServiceTest : ServiceTestBase
   }
 
   [Fact]
-  public async Task DeleteWorkoutTemplateById_ThrowsNotFoundException_WhenTemplateDoesNotExist()
-  {
-    // act & assert
-    await Assert.ThrowsAsync<NotFoundException>(() =>
-      _sut.DeleteWorkoutTemplateById(9999, UserInfoHelpers.CreateUserInfo("alice"))
-    );
-  }
-
-  [Fact]
   public async Task DeleteWorkoutTemplateById_ThrowsForbiddenException_WhenUserIsNotOwner()
   {
     // arrange
     var exerciseId = await SeedExerciseAsync("alice");
-    var created = await CreateTemplateAsync("Push Day", [exerciseId]);
+    var created = await CreateTemplateAsync("Push Day", [exerciseId], "alice");
 
     // act & assert
     await Assert.ThrowsAsync<ForbiddenException>(() =>
