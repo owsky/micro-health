@@ -15,6 +15,8 @@ services:
         condition: service_healthy
       workout-service:
         condition: service_healthy
+      biometrics-service:
+        condition: service_healthy
     networks:
       - apisix-net
       - backend-net

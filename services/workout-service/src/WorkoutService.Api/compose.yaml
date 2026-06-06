@@ -1,4 +1,4 @@
-﻿services:
+services:
   workout-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     restart: unless-stopped
@@ -15,7 +15,7 @@
     networks:
       - backend-net
     ports:
-      - "1433:1433"
+      - "11433:1433"
 
   workout-service:
     build:

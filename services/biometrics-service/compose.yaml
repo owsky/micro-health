@@ -1,0 +1,38 @@
+services:
+  biometrics-db:
+    image: timescale/timescaledb:2.27.2-pg18
+    restart: unless-stopped
+    volumes:
+      - biometrics_data:/pgdata
+    env_file:
+      - .env.production
+    # biometrics-service's healthcheck also checks the database
+    networks:
+      - backend-net
+    ports:
+      - "5431:5432"
+
+  biometrics-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+      - ../../infrastructure/rabbitmq/.env
+    depends_on:
+      biometrics-db:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - backend-net
+
+volumes:
+  biometrics_data:
