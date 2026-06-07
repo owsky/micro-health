@@ -7,6 +7,10 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor"
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter())
 
+  app.setGlobalPrefix("api", {
+    exclude: ["health", "openapi"]
+  })
+
   const config = new DocumentBuilder()
     .setTitle("Biometrics service")
     .setDescription("Microservice used to store and read user-generated biometrics data")
@@ -14,11 +18,13 @@ async function bootstrap() {
     .addTag("biometrics")
     .build()
   const documentFactory = () => SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup("api", app, documentFactory)
+  SwaggerModule.setup("openapi", app, documentFactory)
 
   app.enableShutdownHooks()
   app.useGlobalInterceptors(new LoggingInterceptor())
 
-  await app.listen(process.env.PORT ?? 3000)
+  const port = process.env.PORT ?? 3000
+  await app.listen(port, "0.0.0.0")
+  console.log(`Listening on port ${port}`)
 }
 void bootstrap()
