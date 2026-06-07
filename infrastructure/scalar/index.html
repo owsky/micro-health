@@ -55,8 +55,11 @@
         fetch("http://localhost/api/workout-service/openapi.json").then(r =>
           r.json(),
         ),
+        fetch("http://localhost/api/biometrics-service/openapi.json").then(r =>
+          r.json(),
+        ),
         fetchToken(),
-      ]).then(([userSpec, workoutSpec, token]) => {
+      ]).then(([userSpec, workoutSpec, biometricsSpec, token]) => {
         const app = Scalar.createApiReference("#app", [
           {
             sources: [
@@ -80,6 +83,21 @@
             servers: [
               {
                 url: "http://localhost/api/workout-service",
+                description: "Gateway",
+              },
+            ],
+            authentication: buildAuthConfig(token),
+          },
+          {
+            sources: [
+              {
+                content: injectSecurity(biometricsSpec),
+                title: "Biometrics Service",
+              },
+            ],
+            servers: [
+              {
+                url: "http://localhost/api/biometrics-service",
                 description: "Gateway",
               },
             ],
