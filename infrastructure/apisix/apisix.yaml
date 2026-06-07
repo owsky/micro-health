@@ -105,6 +105,24 @@ upstreams:
         <<: *active-check
         http_path: "/healthz"
       passive: *passive-check
+  - id: biometrics-service-upstream
+    type: roundrobin
+    retries: 1
+    retry_timeout: 2
+    nodes:
+      - host: host.docker.internal
+        port: 3000
+        weight: 1
+        priority: 10
+      - host: biometrics-service
+        port: 3000
+        weight: 1
+        priority: 1
+    checks:
+      active:
+        <<: *active-check
+        http_path: "/health"
+      passive: *passive-check
 
 routes:
   # KEYCLOAK
@@ -149,5 +167,22 @@ routes:
     plugins:
       proxy-rewrite:
         regex_uri: ["^/api/workout-service/(.*)", "/$1"]
+  # BIOMETRICS SERVICE
+  - id: "biometrics-service-open-api-route"
+    uri: "/api/biometrics-service/openapi.json"
+    priority: 2
+    plugin_config_id: "open-api-plugin"
+    upstream_id: "biometrics-service-upstream"
+    plugins:
+      proxy-rewrite:
+        uri: "/openapi-json"
+  - id: "biometrics-service-route"
+    uri: "/api/biometrics-service/*"
+    priority: 1
+    plugin_config_id: "open-id-plugin"
+    upstream_id: "biometrics-service-upstream"
+    plugins:
+      proxy-rewrite:
+        regex_uri: ["^/api/biometrics-service/(.*)", "/$1"]
 
 #END
